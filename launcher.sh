@@ -1,5 +1,4 @@
 #!/bin/bash
-<<<<<<< HEAD
 MODIFIER_ID=$1
 N_POT=$2
 E=$3
@@ -16,7 +15,7 @@ mkdir -p $LOG_LOC
 echo "Launching calculation with:"
 echo "- Number of atoms = 2^$N_POT"
 echo "- Energy = ${E} eV"
-echo "- Temperature = ${T} K"
+echo "- Temperature = ${TEMP} K"
 echo "- Chemical potential = $MU eV"
 echo "- Gamma = $GAMMA"
 echo "- # of moments = $M"
@@ -37,8 +36,3 @@ echo "- # of random vectors = $NR"
 echo "- # of periods simulated = $NT"
 echo "- # of measures per period = $NMEAST"
 echo "- # of time steps per period = $STPERT"
-=======
-# Este script recibe los 10 parámetros y lanza el de Python
-ID_UNICO=$(echo "$@" | tr ' ' '_')
-python3 -u neq_clargs.py "$@" > "Out/logs/log_${ID_UNICO}.txt" 2>&1
->>>>>>> Massive amount of changes and reorganizing of code. New results

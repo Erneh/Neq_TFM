@@ -1,11 +1,8 @@
-<<<<<<< HEAD
 """
 Script made to analyze the output of the calculations. Will fail if the given
 calcs do not exist!
 """
 #%% First part: imports and analysis of just one specific case
-=======
->>>>>>> Massive amount of changes and reorganizing of code. New results
 import os
 N_cores = 1
 os.environ["OMP_NUM_THREADS"] = str(N_cores)        # export OMP_NUM_THREADS=4
@@ -23,29 +20,18 @@ sys.path.append('Code/Neq_TFM')
 
 from ham_creation import create_graphene_ham
 from lat_creation import get_positions_graphene
-<<<<<<< HEAD
 from core import DOS_sparse, frequency_analysis
-=======
-from core import DOS_sparse
->>>>>>> Massive amount of changes and reorganizing of code. New results
 from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 # Benchmarking
 from time import time
 from datetime import timedelta
 
-<<<<<<< HEAD
 
 # ------------------------------------------------------------------------------
 ####  Defining a hamiltonian (own)
-N_pot = 17
+N_pot = 19
 N = 2**N_pot
-=======
-#%% NEQ Calcs
-# ------------------------------------------------------------------------------
-####  Defining a hamiltonian (own)
-N = 2**17
->>>>>>> Massive amount of changes and reorganizing of code. New results
 N1 = N2 = int(np.sqrt(N))//2
 S = get_positions_graphene(N1, N2)
 
@@ -55,29 +41,19 @@ dE = (Ham.bounds[1] - Ham.bounds[0])/2
 # ------------------------------------------------------------------------------
 #### PARAMETERS   
 # Energy in pulse                        
-E = 1            
+E = 0.5      
 # Temperature                       
 Temp = 1e-9
 # Chemical potential
-<<<<<<< HEAD
-mu = 0.40
-# Amount of periods to be simulated
-n_periods = 100
-=======
 mu = 0.01
 # Amount of periods to be simulated
-n_periods = 50
->>>>>>> Massive amount of changes and reorganizing of code. New results
+n_periods = 500
 # Amount of half multiples of E where the occupation is obtained
 hE_reps = 2
 # ??
 tau = 0.0 
 # Amount of measures per period
-<<<<<<< HEAD
-meas_per_T = 8
-=======
-meas_per_T = 32
->>>>>>> Massive amount of changes and reorganizing of code. New results
+meas_per_T = 16
 N_measures = meas_per_T*n_periods
 # Parameters of the laser
 w = E/jcl.hbar_fs 
@@ -88,41 +64,27 @@ t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)
 # Type of light               
 modifier_id = 'circle'
 # Intensity param     (no units)
-<<<<<<< HEAD
-gamma = 0.010        
-=======
-gamma = 0.010                   
->>>>>>> Massive amount of changes and reorganizing of code. New results
+gamma = 0.005
 
 # Intensity of the laser
 Phi0 = jcl.hbar_fs*2*np.pi
 A0 = gamma*Phi0/(2*3**0.5*jcl.a_cc)
 
 # Amount of random vectors used in calculation
-<<<<<<< HEAD
 N_random_vector = 5
 
 # Momenta
 M = int(np.sqrt(N))
 #M = 362
-=======
-N_random_vector = 10
-
-# Momenta
-M = int(np.sqrt(N))
->>>>>>> Massive amount of changes and reorganizing of code. New results
 # Broadening in the energies
 broad = dE*np.pi/M
 
 t_vec_measures = np.linspace(0, n_periods*T, N_measures)
-<<<<<<< HEAD
 
 # Range of searching the maximim frequency (in period^-1 units)
 range_search = 1
 
 
-=======
->>>>>>> Massive amount of changes and reorganizing of code. New results
 # Print of parameters to check results
 print('PARAMETERS OF ANALYSIS')
 print()
@@ -138,7 +100,6 @@ print(f'# measures/T: {meas_per_T}')
 
 
 # Names of file and info on graphs
-<<<<<<< HEAD
 folder_name = f'{modifier_id}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
 fig_title_info = f'$N={{{2**N_pot}}}$, E={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}'
 pulse_suptitle = fr'$E={E}, \omega = {w:.3f}$ fs$^{{-1}}, T={T:.3f}$ fs'
@@ -215,9 +176,9 @@ occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(E
 fig, ax = plt.subplots()
 reescale = np.max(occ_drop_list[3]) / np.max(occ_drop_list[4]) / 2
 ax.plot(np.array(t_vec_measures)/T, occ_drop_list[4]*reescale, c='darkviolet', 
-        marker='.', ls='--', label=f"$E=1E+\\mu$ eV $\\cdot$ {reescale:.3f}")
+        marker='.', ls='--', label=f"$E=1\\hbar\\omega+\\mu$ eV $\\cdot$ {reescale:.3f}")
 ax.plot(np.array(t_vec_measures)/T, occ_drop_list[3], c='blue', 
-        marker='.', ls='--', label=f"$E=0.5E+\\mu$ eV")
+        marker='.', ls='--', label=f"$E=0.5\\hbar\\omega+\\mu$ eV")
 ax.plot(np.array(t_vec_measures)/T, occ_drop_list[2], c='orange', 
         marker='.', ls='--', label=f"$E=\\mu$ eV")
 ax.set_xlabel('Time (Periods)')
@@ -259,21 +220,21 @@ fig.savefig(f'Out/{folder_name}/FREQ_N(T).png', bbox_inches='tight')
 # Plotting the characteristic frequency depending on the intensity
 # ------------------------------------------------------------------------------
 ## SETTING COMMON CONSTANTS
-N_pot = 17
+N_pot = 19
 N = 2**N_pot
-E = 1            
+E = 0.5
 # Temperature                       
 Temp = 1e-9
 # Chemical potential
 mu = 0.01
 # Amount of periods to be simulated
-n_periods = 100
+n_periods = 500
 # Amount of half multiples of E where the occupation is obtained
 hE_reps = 2
 # ??
 tau = 0.0 
 # Amount of measures per period
-meas_per_T = 8
+meas_per_T = 16
 N_measures = meas_per_T*n_periods
 # Parameters of the laser
 w = E/jcl.hbar_fs 
@@ -282,12 +243,12 @@ T = 2*np.pi/w
 steps_per_T = 1000
 t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)      
 # Type of light               
-modifier_id = 'linear'
+modifier_id = 'circle'
 # Amount of random vectors used in calculation
-N_random_vector = 1
+N_random_vector = 5
 range_search = 1
 # Intensity param     (no units)
-gamma_list = np.linspace(0.005, 0.050, 10)                   
+gamma_list = np.linspace(0.000, 0.025, 6)                   
 hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
 color_list = ['olivedrab', 'red', 'orange', 'blue', 'darkviolet']
 t_vec_measures = np.linspace(0, n_periods*T, N_measures)
@@ -314,7 +275,6 @@ for (g, gamma) in enumerate(gamma_list):
     # Names of file and info on graphs
     folder_name = f'{modifier_id}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
     fig_title_info = f'$N={{{2**N_pot}}}$, E={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}'
-    pulse_suptitle = fr'$E_0={E}, \omega = {w:.3f}$ fs$^{{-1}}, T={T:.3f}$ fs'
 
     # Loading the info in the .npy files
     EF_list = np.load(f'Out/{folder_name}/E.npy')
@@ -449,47 +409,3 @@ ax.set_xlabel('Intensity parameter $\\Gamma$')
 ax.set_ylabel('Ang. frequency')
 ax.legend()
 
-=======
-folder_name = f'circle/N={N}_E={float(E)}_Temp={Temp}_mu={mu:.2f}_G={gamma:.3f}/Nrand={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
-fig_title_info = f'N={N}, E={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}'
-pulse_suptitle = fr'$E={E}, \omega = {w:.3f}$ fs$^{{-1}}, T={T:.3f}$ fs'
-extra_text = f'Light: circle\n$\\delta E={broad:.3f}$\nMeasures/T={meas_per_T}\nSteps/T={steps_per_T}'
-
-# Loading the info in the .npy files
-EF_list = np.load(f'Out/{folder_name}/E.npy')
-n_E_list = np.load(f'Out/{folder_name}/n_E.npy')
-
-# Remaking the graphs of oscillations in time
-hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
-total_nhE = 2*hE_reps + 1 
-occ_drop_list = np.zeros((total_nhE, N_measures))
-for (i, hE) in enumerate(hE_list):
-    ind_time = np.where(EF_list[i,:] > hE + mu)[0][0]
-    occ_drop_list[i] = [n_E_list[i,ind_time] for i in range(N_measures)]
-
-    fig, ax = plt.subplots()
-    ax.plot(np.array(t_vec_measures)/T, occ_drop_list[i], c='blue', marker='.', ls='--')
-    ax.set_xlabel('Time (Periods)')
-    ax.set_ylabel('$n(\\varepsilon)$')
-    ax.set_title(fr'Occupation in $E={hE/E:.1f}E$ + $\mu$')
-    fig.suptitle(fig_title_info)
-    #fig.savefig(f'Out/{folder_name}/N(T)_{hE:.1f}.png', bbox_inches='tight')
-
-# ------------------------------------------------------------------------------
-# FREQUENCY ANALYSIS OF THE RESULTS
-fourier_occ = np.abs(np.fft.rfft(occ_drop_list))
-dt = t_vec_measures[1] - t_vec_measures[0]
-df = 1/dt/N_measures
-freq = np.arange(0, fourier_occ.shape[1], 1)*df
-for (i, hE) in enumerate(hE_list):
-    max_freq_ind = np.where(fourier_occ[i] == max(fourier_occ[i]))[0]
-
-    fig, ax = plt.subplots()
-    ax.set_ylim(0, 10)
-    ax.plot(freq*T, fourier_occ[i], c='blue', marker='.', ls='--')
-    ax.set_xlabel('Frequency (period$^{-1}$)')
-    ax.set_ylabel('Amplitude')
-    ax.set_title(fr'FFT in $E={hE/E:.1f}E$ + $\mu$')
-    fig.suptitle(fig_title_info)
-    #fig.savefig(f'Out/{folder_name}/N(T)_{hE:.1f}.png', bbox_inches='tight')
->>>>>>> Massive amount of changes and reorganizing of code. New results

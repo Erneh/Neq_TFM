@@ -24,19 +24,11 @@ from time import time
 from datetime import timedelta
 #%% Other important functions
 
-<<<<<<< HEAD
 def check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
                         n_periods, meas_per_T, steps_per_T):
     N = 2**N_pot
     # Names of file and info on graphs
     folder_name = f'{modifier_id}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
-=======
-def check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
-                        n_periods, meas_per_T, steps_per_T):
-    N = 2**N_pot
-    # Names of file and info on graphs
-    folder_name = f'{modifier_id}/N={N}_E={float(E)}_Temp={float(Temp)}_mu={mu:.2f}_G={gamma:.3f}/Nrand={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
->>>>>>> Massive amount of changes and reorganizing of code. New results
     # Check if file exists
     try:
         os.makedirs(f'Out/{folder_name}', exist_ok=False)
@@ -49,29 +41,19 @@ def check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
     if flag:
         try:
             EF_list = np.load(f'Out/{folder_name}/E.npy')
-<<<<<<< HEAD
             np.load(f'Out/{folder_name}/n_E.npy')
             np.load(f'Out/{folder_name}/dosn_E.npy')
             np.load(f'Out/{folder_name}/dos_E.npy')
-=======
->>>>>>> Massive amount of changes and reorganizing of code. New results
             if np.sum(np.abs(EF_list)) == 0:
                 flag = False
         except FileNotFoundError:
             flag = False
     return flag
 
-<<<<<<< HEAD
 #%% NEQ Calcs in Full
 # ------------------------------------------------------------------------------
 ####  Defining a hamiltonian (own)
 def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
-=======
-#%% NEQ Calcs
-# ------------------------------------------------------------------------------
-####  Defining a hamiltonian (own)
-def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector, 
->>>>>>> Massive amount of changes and reorganizing of code. New results
             n_periods, meas_per_T, steps_per_T, force_recalc=False, show_figs=True):
     N = 2**N_pot
     N1 = N2 = int(np.sqrt(N))//2
@@ -95,18 +77,9 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
     t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)      
                 
     # Intensity of the laser
-<<<<<<< HEAD
     #Phi0 = jcl.hbar_fs*2*np.pi
     #A0 = gamma*Phi0/(2*3**0.5*jcl.a_cc)
     A0 = np.pi*gamma/(3**0.5*jcl.a_cc)
-=======
-    Phi0 = jcl.hbar_fs*2*np.pi
-    A0 = gamma*Phi0/(2*3**0.5*jcl.a_cc)
-
-
-    # Momenta
-    M = int(np.sqrt(N))
->>>>>>> Massive amount of changes and reorganizing of code. New results
     # Broadening in the energies
     broad = dE*np.pi/M
 
@@ -131,10 +104,7 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
     print()
     print(f'Type of light is {modifier_id}')
     print(f'# of atoms: {N}')
-<<<<<<< HEAD
     print(f'# of moments: {M}')
-=======
->>>>>>> Massive amount of changes and reorganizing of code. New results
     print(f'Energy: {E} eV')
     print(f'Intensity param: {gamma}')
     print(f'Temperature: {Temp} K')
@@ -144,13 +114,10 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
     print(f'steps/period: {steps_per_T}')
     print(f'# measures/T: {meas_per_T}')
 
-<<<<<<< HEAD
     # Say approximate calculation time
     aprox_time = 265/(2**17*362*20*1000*4)*(N*M*n_periods*steps_per_T*meas_per_T)
     print()
     print(f'Approximate time: {aprox_time:.5f}')
-=======
->>>>>>> Massive amount of changes and reorganizing of code. New results
     # Set up cmap and norm for the graphs in the future
     cmap = plt.cm.plasma 
     norm = Normalize(vmin=t_vec.min(), vmax=t_vec.max())
@@ -158,7 +125,6 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
     # Times where the measurements take place
     t_vec_measures = np.linspace(0, n_periods*T, N_measures)
     
-<<<<<<< HEAD
     # Names of file and info on 
     folder_name = f'{modifier_id}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
     fig_title_info = f'$N={{{2**N_pot}}}$, E={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}, R={N_random_vector}'
@@ -166,20 +132,10 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
     extra_text = f'Light: {modifier_id}\n$\\delta E={broad:.3f}$\n# Rand Vecs: {N_random_vector}\nMeasures/T={meas_per_T}\nSteps/T={steps_per_T}'
 
     already_calc = check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
-=======
-    # Names of file and info on graphs
-    folder_name = f'{modifier_id}/N={N}_E={float(E)}_Temp={Temp}_mu={mu:.2f}_G={gamma:.3f}/Nrand={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
-    fig_title_info = f'N={N}, E={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}'
-    pulse_suptitle = fr'$E={E}, \omega = {w:.3f}$ fs$^{{-1}}, T={T:.3f}$ fs'
-    extra_text = f'Light: {modifier_id}\n$\\delta E={broad:.3f}$\n# Rand Vecs: {N_random_vector}\nMeasures/T={meas_per_T}\nSteps/T={steps_per_T}'
-
-    already_calc = check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
->>>>>>> Massive amount of changes and reorganizing of code. New results
                             n_periods, meas_per_T, steps_per_T)
     perform_calc = force_recalc or (not already_calc)
 
     if perform_calc:
-<<<<<<< HEAD
         print('Results not found. Calculation starts!')
         # Create said folder
         os.makedirs(f'Out/{folder_name}', exist_ok=True)
@@ -191,18 +147,6 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
 
         # -----------------------------------------------------------------------------
         ## PRE-CALL: calculating the pulse in the given timeframe
-=======
-        print('Calculation starts!')
-        # Create said folder
-        os.makedirs(f'Out/{folder_name}', exist_ok=True)
-
-        # -----------------------------------------------------------------------------
-        ## PRE-CALL: calculating the pulse in the given timeframe
-
-        
-
-        
->>>>>>> Massive amount of changes and reorganizing of code. New results
         if modifier_id == 'circle':
             Pulse_x = np.cos(t_vec*w)
             Pulse_y = np.sin(t_vec*w)
@@ -218,11 +162,7 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
             for i in range(len(t_vec_measures)):
                 ax.vlines(t_vec_measures[i]/T, -1, 1, color=cmap(norm(t_vec_measures[i])))
             fig.savefig(f'Out/{folder_name}/PULSE_X_meas.png', bbox_inches='tight')
-<<<<<<< HEAD
             plt.close(fig)
-=======
-            
->>>>>>> Massive amount of changes and reorganizing of code. New results
 
             # Pulse on Y
             fig, ax = plt.subplots()
@@ -235,11 +175,7 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
             for i in range(len(t_vec_measures)):
                 ax.vlines(t_vec_measures[i]/T, -1, 1, color=cmap(norm(t_vec_measures[i])))
             fig.savefig(f'Out/{folder_name}/PULSE_Y_meas.png', bbox_inches='tight')
-<<<<<<< HEAD
             plt.close(fig)
-=======
-            
->>>>>>> Massive amount of changes and reorganizing of code. New results
 
         elif modifier_id == 'linear':
             Pulse = np.sin(t_vec*w)
@@ -254,11 +190,7 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
             for i in range(len(t_vec_measures)):
                 ax.vlines(t_vec_measures[i]/T, -1, 1, color=cmap(norm(t_vec_measures[i])))
             fig.savefig(f'Out/{folder_name}/PULSE_meas.png', bbox_inches='tight')
-<<<<<<< HEAD
             plt.close(fig)
-=======
-
->>>>>>> Massive amount of changes and reorganizing of code. New results
         elif modifier_id == 'linear_packed':
             Pulse = np.sin(t_vec*w)
 
@@ -272,16 +204,11 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
             for i in range(len(t_vec_measures)):
                 ax.vlines(t_vec_measures[i]/T, -1, 1, color=cmap(norm(t_vec_measures[i])))
             fig.savefig(f'Out/{folder_name}/PULSE_meas.png', bbox_inches='tight')
-<<<<<<< HEAD
             plt.close(fig)
-=======
-
->>>>>>> Massive amount of changes and reorganizing of code. New results
 
         taux = time()
         print('Main calculation starts now.')
         trep = time()
-<<<<<<< HEAD
         n_mat, dos_n_mat, dos_mat, t_vec_measures = jcl.kpm_rho_neq(Ham,t_vec,tau,modifier_id,modifier_params,Temp,mu,obs_list,M)
         n_mat_total = np.zeros_like(n_mat)
         dos_n_mat_total = np.zeros_like(dos_n_mat)
@@ -296,17 +223,10 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
             np.save(f'Out/{folder_name}/dosn_R/1.npy', dos_n_mat[:,:,1])
             np.save(f'Out/{folder_name}/dos_R/1.npy', dos_mat[:,:,1])
 
-=======
-        n_mat, dos_n_mat, t_vec_measures = jcl.kpm_rho_neq(Ham,t_vec,tau,modifier_id,modifier_params,Temp,mu,obs_list,M)
-        n_mat_total, dos_n_mat_total = np.zeros_like(n_mat), np.zeros_like(dos_n_mat)
-        n_mat_total += n_mat 
-        dos_n_mat_total += dos_n_mat
->>>>>>> Massive amount of changes and reorganizing of code. New results
         print('Calc #1 done!')
         print(f'Time elapsed: {timedelta(seconds=time() - trep)}')
         for i in range(2, N_random_vector+1):
             trep = time()
-<<<<<<< HEAD
             n_mat, dos_n_mat, dos_mat, t_vec_measures = jcl.kpm_rho_neq(Ham,t_vec,tau,modifier_id,modifier_params,Temp,mu,obs_list,M)
 
             n_mat_total += n_mat 
@@ -319,11 +239,6 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
             np.save(f'Out/{folder_name}/dosn_R/{i}.npy', dos_n_mat[:,:,1])
             np.save(f'Out/{folder_name}/dos_R/{i}.npy', dos_mat[:,:,1])
 
-=======
-            n_mat, dos_n_mat, t_vec_measures = jcl.kpm_rho_neq(Ham,t_vec,tau,modifier_id,modifier_params,Temp,mu,obs_list,M)
-            n_mat_total += n_mat 
-            dos_n_mat_total += dos_n_mat
->>>>>>> Massive amount of changes and reorganizing of code. New results
             print(f'Calc #{i} done!')
             print(f'Time elapsed: {timedelta(seconds=time() - trep)}')
         n_mat_total /= N_random_vector
@@ -333,17 +248,11 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
         EF_list = n_mat_total[:,:,0]
         n_list = n_mat_total[:,:,1]
         ndos_list = dos_n_mat_total[:,:,1]
-<<<<<<< HEAD
         dos_list = dos_mat_total[:,:,1]
         np.save(f'Out/{folder_name}/E.npy', EF_list)
         np.save(f'Out/{folder_name}/n_E.npy', n_list)
         np.save(f'Out/{folder_name}/dosn_E.npy', ndos_list)
         np.save(f'Out/{folder_name}/dos_E.npy', dos_list)
-=======
-        np.save(f'Out/{folder_name}/E.npy', EF_list)
-        np.save(f'Out/{folder_name}/n_E.npy', n_list)
-        np.save(f'Out/{folder_name}/dosn_E.npy', ndos_list)
->>>>>>> Massive amount of changes and reorganizing of code. New results
         
         print(f'Time elapsed: {timedelta(seconds=time() - taux)}')
     else:
@@ -351,10 +260,7 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
         EF_list = np.load(f'Out/{folder_name}/E.npy')
         n_list = np.load(f'Out/{folder_name}/n_E.npy')
         ndos_list = np.load(f'Out/{folder_name}/dosn_E.npy')
-<<<<<<< HEAD
         dos_list = np.load(f'Out/{folder_name}/dos_E.npy')
-=======
->>>>>>> Massive amount of changes and reorganizing of code. New results
     # ------------------------------------------------------------------------------
     #%% Graph results
     # Energy window and lines
@@ -366,10 +272,7 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
     # Text box
     props = dict(boxstyle='round', facecolor='white', alpha=1.0)
 
-<<<<<<< HEAD
     # Occupation graph
-=======
->>>>>>> Massive amount of changes and reorganizing of code. New results
     fig, ax = plt.subplots()
     for i in range(N_measures):
         ax.plot(EF_list[i,:], n_list[i,:], color=cmap(norm(t_vec_measures[i])), label=f't={round(t_vec_measures[i]/T, 3)}T')
@@ -384,7 +287,6 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
     ax.text(min_e + 0.5, 0.2, extra_text, bbox=props)
     fig.savefig(f'Out/{folder_name}/N(E).png', bbox_inches='tight')
 
-<<<<<<< HEAD
     # Density of states graph
     fig, ax = plt.subplots()
     for i in range(N_measures):
@@ -409,17 +311,6 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
         ind_time = np.where(EF_list[i,:] > hE)[0][0]
         occ_drop_list[i] = np.array([n_list[i,ind_time] for i in range(N_measures)])
         # Specific figure for each calculation
-=======
-
-    #%% Extra graphs for the n for different times
-    hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
-    total_nhE = 2*hE_reps + 1 
-    occ_drop_list = np.zeros((total_nhE, N_measures))
-    for (i, hE) in enumerate(hE_list):
-        ind_time = np.where(EF_list[i,:] > hE)[0][0]
-        occ_drop_list[i] = np.array([n_list[i,ind_time] for i in range(N_measures)])
-
->>>>>>> Massive amount of changes and reorganizing of code. New results
         fig, ax = plt.subplots()
         ax.plot(np.array(t_vec_measures)/T, occ_drop_list[i], c='blue', marker='.', ls='--')
         ax.set_xlabel('Time (Periods)')
@@ -427,7 +318,6 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
         ax.set_title(fr'Occupation in $E={hE/E:.1f}E$')
         fig.suptitle(fig_title_info)
         fig.savefig(f'Out/{folder_name}/N(T)_{hE:.1f}.png', bbox_inches='tight')
-<<<<<<< HEAD
         plt.close(fig)
     # General figure to contain all important data
     fig, ax = plt.subplots()
@@ -465,25 +355,12 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, N_random_vector,
         max_freq_ind = (np.where(fourier_occ[i] == max(fourier_occ[i][1:])))[0][0]
         char_freq[i] = freq[max_freq_ind]
         fig, ax = plt.subplots()
-=======
-
-    # ------------------------------------------------------------------------------
-    # FREQUENCY ANALYSIS OF THE RESULTS
-    fourier_occ = np.abs(np.fft.rfft(occ_drop_list))
-    dt = t_vec_measures[1] - t_vec_measures[0]
-    df = 1/dt/N_measures
-    freq = np.arange(0, fourier_occ.shape[1], 1)*df
-    for (i, hE) in enumerate(hE_list):
-        fig, ax = plt.subplots()
-        ax.set_ylim(0, 10)
->>>>>>> Massive amount of changes and reorganizing of code. New results
         ax.plot(freq*T, fourier_occ[i], c='blue', marker='.', ls='--')
         ax.set_xlabel('Frequency (period$^{-1}$)')
         ax.set_ylabel('Amplitude')
         ax.set_title(fr'FFT in $E={hE/E:.1f}E$ + $\mu$')
         fig.suptitle(fig_title_info)
         fig.savefig(f'Out/{folder_name}/FREQ_N(T)_{hE:.1f}.png', bbox_inches='tight')
-<<<<<<< HEAD
         plt.close(fig)
     # General figure
     fig, ax = plt.subplots()
@@ -538,8 +415,3 @@ if __name__ == '__main__':
     # Call general function to get the job done
     neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
                 n_periods, meas_per_T, steps_per_T, force_recalc, False)
-=======
-    if not show_figs:
-        plt.close()
-    return EF_list, n_list, ndos_list
->>>>>>> Massive amount of changes and reorganizing of code. New results

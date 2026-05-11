@@ -108,6 +108,10 @@ def frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T, range_sear
     # Checking only the frequencies between 0 and 1 (in laser period units)
     inf_freqs = freq/(2*np.pi)*T < range_search - df
     for (i, hE) in enumerate(hE_list):
-        max_freq_ind[i] = (np.where(fourier_occ[i, inf_freqs] == max(fourier_occ[i][inf_freqs])))[0][0]
+        #max_freq_ind[i] = (np.where(fourier_occ[i, inf_freqs] == max(fourier_occ[i][inf_freqs])))[0][0]
+        max_freq_ind[i] = fourier_occ[i, inf_freqs].argmax()
+        # Rule out noisy situation where no real mode is detected
+        if fourier_occ[i, inf_freqs][max_freq_ind[i]] < 1e-10:
+            max_freq_ind[i] = 0
         char_freq[i] = freq[max_freq_ind[i]]
     return occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind
