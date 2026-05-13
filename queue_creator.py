@@ -40,7 +40,7 @@ file_name = 'aa_calcs'
 modifier_id_list = ['circle']
 
 # Power to which the number of atoms is 'powered'
-N_pot_list = [19]
+N_pot_list = [21]
 # Energy in pulse                        
 E_list = [0.5]     
 # Temperature                       
@@ -50,7 +50,7 @@ mu_list = [0.01]
 # Intensity param     (no units)
 gamma_list = np.linspace(0.000, 0.050, 11)
 # Amount of random vectors used in calculation
-N_random_vector_list = [5]
+N_random_vector_list = [3]
 M_list = [0]
 # # periods included in sims
 n_periods_list = [200]

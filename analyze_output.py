@@ -28,6 +28,37 @@ from time import time
 from datetime import timedelta
 
 
+def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
+                        n_periods, meas_per_T, steps_per_T, R=None):
+    # Name of the file with the data
+    folder_name = f'{modifier_id}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
+
+    # Loading the info in the .npy files available at the moment
+    if N_random_vector == 1:
+        print(f'1/1 calculations finished! Loading results...')
+        EF_list = np.load(f'Out/{folder_name}/E.npy')
+        n_E_list = np.load(f'Out/{folder_name}/n_E.npy')
+        dos_list = np.load(f'Out/{folder_name}/dos_E.npy')
+        dosn_list = np.load(f'Out/{folder_name}/dosn_E.npy')
+    else:
+        # Deciding the amount of random vectors being used in the sim
+        R_total = len(os.listdir(f'Out/{folder_name}/Ene_R'))
+        if R is None:
+            R = R_total
+
+        print(f'{R_total}/{N_random_vector} calculations finished! Loading {R} results...')
+        EF_list = np.load(f'Out/{folder_name}/Ene_R/1.npy')
+        n_E_list = np.zeros_like(EF_list)
+        dos_list = np.zeros_like(EF_list)
+        dosn_list = np.zeros_like(EF_list)
+        for i in range(1, R+1):
+            n_E_list += np.load(f'Out/{folder_name}/noc_R/{i}.npy')
+            dos_list += np.load(f'Out/{folder_name}/dos_R/{i}.npy')
+            dosn_list += np.load(f'Out/{folder_name}/dosn_R/{i}.npy')
+        n_E_list /= R
+        dos_list /= R
+        dosn_list /= R
+    return EF_list, n_E_list, dos_list, dosn_list
 # ------------------------------------------------------------------------------
 ####  Defining a hamiltonian (own)
 N_pot = 19
@@ -64,7 +95,7 @@ t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)
 # Type of light               
 modifier_id = 'circle'
 # Intensity param     (no units)
-gamma = 0.005
+gamma = 0.020
 
 # Intensity of the laser
 Phi0 = jcl.hbar_fs*2*np.pi
@@ -100,28 +131,11 @@ print(f'# measures/T: {meas_per_T}')
 
 
 # Names of file and info on graphs
-folder_name = f'{modifier_id}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
-fig_title_info = f'$N={{{2**N_pot}}}$, E={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}'
-pulse_suptitle = fr'$E={E}, \omega = {w:.3f}$ fs$^{{-1}}, T={T:.3f}$ fs'
+fig_title_info = f'$N={{{2**N_pot}}}$, $\\hbar\\omega={E}$ eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}'
 extra_text = f'Light: {modifier_id}\n$\\delta E={broad:.3f}$\n# Rand Vecs: {N_random_vector}\nMeasures/T={meas_per_T}\nSteps/T={steps_per_T}'
 
-# Loading the info in the .npy files available at the moment
-if N_random_vector == 1:
-    EF_list = np.load(f'Out/{folder_name}/E.npy')
-    n_E_list = np.load(f'Out/{folder_name}/n_E.npy')
-    dos_list = np.load(f'Out/{folder_name}/dos_E.npy')
-else:
-    # See the amount calculated in the corresponding folder
-    R_calc = len(os.listdir(f'Out/{folder_name}/Ene_R'))
-    print(f'{R_calc}/{N_random_vector} calculations finished! Showing results...')
-    EF_list = np.load(f'Out/{folder_name}/Ene_R/1.npy')
-    n_E_list = np.zeros_like(EF_list)
-    dos_list = np.zeros_like(EF_list)
-    for i in range(1, R_calc+1):
-        n_E_list += np.load(f'Out/{folder_name}/noc_R/{i}.npy')
-        dos_list += np.load(f'Out/{folder_name}/dos_R/{i}.npy')
-    n_E_list /= R_calc
-    dos_list /= R_calc
+EF_list, n_E_list, dos_list, dosn_list = load_data(modifier_id, N_pot, E, Temp, mu, gamma, 
+                        M, N_random_vector, n_periods, meas_per_T, steps_per_T, R=None)
             
 # Remaking the graphs of oscillations in time
 hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
@@ -129,18 +143,18 @@ hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
 
 # Energy window and lines
 cmap = plt.cm.plasma 
-norm = Normalize(vmin=t_vec.min(), vmax=t_vec.max())
-min_e, max_e = -2.5, 2.5
-hw_lines_step = 0.5
-hw_hlines = [i*E for i in [hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
-hw_hlines += [i*E for i in [-hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
+norm = Normalize(vmin=t_vec.min()/T, vmax=t_vec.max()/T)
+min_e, max_e = -2.5*E, 2.5*E
+hw_lines_step = 0.5*E
+hw_hlines = [i for i in [hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
+hw_hlines += [i for i in [-hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
 
 # Text box
-props = dict(boxstyle='round', facecolor='white', alpha=1.0)
+props = dict(boxstyle='round', facecolor='white', alpha=0.8)
 
 fig, ax = plt.subplots()
 for i in range(N_measures):
-    ax.plot(EF_list[i,:], n_E_list[i,:], color=cmap(norm(t_vec_measures[i])), label=f't={round(t_vec_measures[i]/T, 3)}T')
+    ax.plot(EF_list[i,:], n_E_list[i,:], color=cmap(norm(t_vec_measures[i]/T)), label=f't={round(t_vec_measures[i]/T, 3)}T')
 #ax.legend()
 cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
 ax.set_xlabel('Energy (eV)')
@@ -149,8 +163,7 @@ ax.set_xlim(min_e, max_e)
 ax.vlines(hw_hlines, 0, 1, color='grey', ls='--', alpha=0.5, zorder=1)
 fig.suptitle(fig_title_info)
 ax.set_title('Occupation Number')
-ax.text(min_e + 0.5, 0.2, extra_text, bbox=props)
-fig.savefig(f'Out/{folder_name}/N(E).png', bbox_inches='tight')
+ax.text(min_e + 0.5*E, 0.2, extra_text, bbox=props)
 
 
 # Density of states graph
@@ -165,7 +178,19 @@ ax.set_ylabel('$n(\\varepsilon)$')
 ax.vlines([0], 0, np.max(dos_list), color='grey', ls='--', alpha=0.8, zorder=1)
 fig.suptitle(fig_title_info)
 ax.set_title('Density of States')
-fig.savefig(f'Out/{folder_name}/dos(E).png', bbox_inches='tight')
+
+# Density of states graph
+fig, ax = plt.subplots()
+for i in range(N_measures):
+    ax.plot(EF_list[i,:], dos_list[i,:], color=cmap(norm(t_vec_measures[i])), label=f't={round(t_vec_measures[i]/T, 3)}T')
+#ax.legend()
+cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
+ax.set_xlabel('Energy (eV)')
+ax.set_ylabel('$n(\\varepsilon)$')
+#ax.vlines(hw_hlines, 0, np.max(dos_list), color='grey', ls='--', alpha=0.5, zorder=1)
+ax.vlines([0], 0, np.max(dos_list), color='grey', ls='--', alpha=0.8, zorder=1)
+fig.suptitle(fig_title_info)
+ax.set_title('Density of States')
 
 # Extra graphs for the n for different times
 hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
@@ -176,30 +201,31 @@ occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(E
 fig, ax = plt.subplots()
 reescale = np.max(occ_drop_list[3]) / np.max(occ_drop_list[4]) / 2
 ax.plot(np.array(t_vec_measures)/T, occ_drop_list[4]*reescale, c='darkviolet', 
-        marker='.', ls='--', label=f"$E=1\\hbar\\omega+\\mu$ eV $\\cdot$ {reescale:.3f}")
+        marker='.', ls='--', label=f"$E=1\\hbar\\omega$ $\\cdot$ {reescale:.3f}")
 ax.plot(np.array(t_vec_measures)/T, occ_drop_list[3], c='blue', 
-        marker='.', ls='--', label=f"$E=0.5\\hbar\\omega+\\mu$ eV")
+        marker='.', ls='--', label=f"$E=0.5\\hbar\\omega$")
 ax.plot(np.array(t_vec_measures)/T, occ_drop_list[2], c='orange', 
-        marker='.', ls='--', label=f"$E=\\mu$ eV")
+        marker='.', ls='--', label=f"E=0")
 ax.set_xlabel('Time (Periods)')
 ax.set_ylabel('$n(t)$')
 ax.set_title(fr'Occupation')
 fig.suptitle(fig_title_info)
 ax.legend()
-fig.savefig(f'Out/{folder_name}/N(T).png', bbox_inches='tight')
+ax.set_xlim(0, 20)
 
 # ------------------------------------------------------------------------------
 # FREQUENCY ANALYSIS OF THE RESULTS
 # General figure
-max_freq = min(20, freq[-1]*T/(2*np.pi))
+max_freq = min(3, freq[-1]*T/(2*np.pi))
+props = dict(boxstyle='round', facecolor='white', edgecolor='grey', alpha=0.8)
 
 fig, ax = plt.subplots()
 ax.plot(freq*T/(2*np.pi), fourier_occ[2], c='orange', marker='.', ls='--', 
-        label=f'$E = \\mu$ eV, $f_c={char_freq[2]:.6f}$')
+        label=f'$E = 0\\hbar\\omega$')
 ax.plot(freq*T/(2*np.pi), fourier_occ[3], c='blue', marker='.', ls='--', 
-        label=f'$E = 0.5E + \\mu$ eV, $f_c={char_freq[3]:.6f}$')
+        label=f'$E = 0.5\\hbar\\omega$')
 ax.plot(freq*T/(2*np.pi), fourier_occ[4], c='darkviolet', marker='.', ls='--', 
-        label=f'$E = 1E+\\mu$ eV, $f_c={char_freq[4]:.6f}$')
+        label=f'$E = 1\\hbar\\omega$')
 # Markers of max frequencies
 ax.scatter(freq[max_freq_ind[2]]*T/(2*np.pi), fourier_occ[2, max_freq_ind[2]], color='red',
            marker='*', zorder=2)
@@ -207,14 +233,18 @@ ax.scatter(freq[max_freq_ind[3]]*T/(2*np.pi), fourier_occ[3, max_freq_ind[3]], c
            marker='*', zorder=2)
 ax.scatter(freq[max_freq_ind[4]]*T/(2*np.pi), fourier_occ[4, max_freq_ind[4]], color='magenta',
            marker='*', zorder=2)
+ax.vlines([range_search], 0, np.max(fourier_occ), ls='-.', color='gray')
+ax.set_xlim(0, max_freq)
+wc_text = f'$\\omega_c = {char_freq[2]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq[3]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq[4]:.6f}$ fs$^{{-1}}$'
+ax.text(0.72, 0.98, wc_text, transform=ax.transAxes,
+        verticalalignment='top', bbox=props)
+ax.legend(loc=(0.47, 0.7815), labelspacing=0.8, edgecolor='grey')
 ax.set_xlabel('Normal Frequency (period$^{-1}$)')
 ax.set_ylabel('Amplitude')
 ax.set_title('FFT')
 fig.suptitle(fig_title_info)
-ax.legend()
-ax.set_xlim(0, max_freq)
-ax.vlines([range_search], 0, np.max(fourier_occ), ls='-.', color='gray')
-fig.savefig(f'Out/{folder_name}/FREQ_N(T).png', bbox_inches='tight')
+
+
 
 #%% Second part of the analysis
 # Plotting the characteristic frequency depending on the intensity
@@ -228,13 +258,13 @@ Temp = 1e-9
 # Chemical potential
 mu = 0.01
 # Amount of periods to be simulated
-n_periods = 500
+n_periods = 200
 # Amount of half multiples of E where the occupation is obtained
 hE_reps = 2
 # ??
 tau = 0.0 
 # Amount of measures per period
-meas_per_T = 16
+meas_per_T = 32
 N_measures = meas_per_T*n_periods
 # Parameters of the laser
 w = E/jcl.hbar_fs 
@@ -306,30 +336,34 @@ for (g, gamma) in enumerate(gamma_list):
     # --------------------------------------------------------------------------
     # FREQUENCY ANALYSIS OF THE RESULTS
     # General figure
-    max_freq = min(20, freq[-1]*T/(2*np.pi))
+    # General figure
+    max_freq = min(3, freq[-1]*T/(2*np.pi))
+    props = dict(boxstyle='round', facecolor='white', edgecolor='grey', alpha=0.8)
 
     fig, ax = plt.subplots()
     ax.plot(freq*T/(2*np.pi), fourier_occ[2], c='orange', marker='.', ls='--', 
-        label=f'$E = \\mu$ eV, $f_c={char_freq[g, 2]:.6f}$')
-    ax.plot(freq*T/(2*np.pi), fourier_occ[3], c='blue', marker='.', ls='--',
-        label=f'$E = 0.5E + \\mu$ eV, $f_c={char_freq[g, 3]:.6f}$')
+            label=f'$E = 0\\hbar\\omega$')
+    ax.plot(freq*T/(2*np.pi), fourier_occ[3], c='blue', marker='.', ls='--', 
+            label=f'$E = 0.5\\hbar\\omega$')
     ax.plot(freq*T/(2*np.pi), fourier_occ[4], c='darkviolet', marker='.', ls='--', 
-        label=f'$E = 1E+\\mu$ eV, $f_c={char_freq[g, 4]:.6f}$')
+            label=f'$E = 1\\hbar\\omega$')
     # Markers of max frequencies
     ax.scatter(freq[max_freq_ind[2]]*T/(2*np.pi), fourier_occ[2, max_freq_ind[2]], color='red',
-        marker='*', zorder=2)
+            marker='*', zorder=2)
     ax.scatter(freq[max_freq_ind[3]]*T/(2*np.pi), fourier_occ[3, max_freq_ind[3]], color='cyan',
-        marker='*', zorder=2)
+            marker='*', zorder=2)
     ax.scatter(freq[max_freq_ind[4]]*T/(2*np.pi), fourier_occ[4, max_freq_ind[4]], color='magenta',
-        marker='*', zorder=2)
+            marker='*', zorder=2)
+    ax.vlines([range_search], 0, np.max(fourier_occ), ls='-.', color='gray')
+    ax.set_xlim(0, max_freq)
+    wc_text = f'$\\omega_c = {char_freq[g, 2]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq[g, 3]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq[g, 4]:.6f}$ fs$^{{-1}}$'
+    ax.text(0.72, 0.98, wc_text, transform=ax.transAxes,
+            verticalalignment='top', bbox=props)
+    ax.legend(loc=(0.47, 0.7815), labelspacing=0.8, edgecolor='grey')
     ax.set_xlabel('Normal Frequency (period$^{-1}$)')
     ax.set_ylabel('Amplitude')
     ax.set_title('FFT')
     fig.suptitle(fig_title_info)
-    ax.legend()
-    ax.set_xlim(0, max_freq)
-    ax.vlines([range_search], 0, np.max(fourier_occ), ls='-.', color='gray')
-    fig.savefig(f'Out/{folder_name}/FREQ_N(T).png', bbox_inches='tight')
     
     
 
@@ -351,12 +385,23 @@ fig.suptitle(f'$N=2^{{{N_pot}}}$, E_0={E} eV, Temp={Temp} K, $\\mu$={mu} eV')
 
 #%% Fitting to see if a relation is even possible
 # Importing the results from Floquet
-imported_inds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 model_select = 'real'
-gamma_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP/gamma_list.npy')[imported_inds]
-gap0_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP/gap0_{model_select}.npy')[imported_inds]
-gap1_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP/gap1_{model_select}.npy')[imported_inds]
-gap2_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP/gap2_{model_select}.npy')[imported_inds]
+gamma_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}/gamma_list.npy')
+gap0_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}/gap0_{model_select}.npy')
+gap1_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}/gap1_{model_select}.npy')
+gap2_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}/gap2_{model_select}.npy')
+
+# Seeing which indexes are used in the other results
+used_inds = []
+for (i, g_fl) in enumerate(gamma_fl):
+    if g_fl in gamma_list:
+        used_inds.append(i)
+
+# Applying the results
+gamma_fl = gamma_fl[used_inds]
+gap0_fl = gap0_fl[used_inds]
+gap1_fl = gap1_fl[used_inds]
+gap2_fl = gap2_fl[used_inds]
 
 # Fitting of the curve
 from scipy.stats import linregress
@@ -390,21 +435,24 @@ ax.legend()
 
 #%% Trying Rabi stuff to see if theoretical results make sense using gap
 t = -2.7
-w_laser = E/jcl.hbar_fs
-w1 = np.sqrt(3)*t*gamma_fl*np.pi/jcl.hbar_fs/2
+Phi0 = 2*np.pi*jcl.hbar_fs
+A0 = gamma_list*Phi0/(2*jcl.a_cc*np.sqrt(3))
+vf = 3*jcl.a_cc*abs(t)/(2*jcl.hbar_fs)
+w1 = 2*vf*A0/jcl.hbar_fs
+#w1 = np.sqrt(3)*t*gamma_fl*np.pi/jcl.hbar_fs/2
 #w1 = 3*t**2*gamma_list**2*np.pi**2
 rep = 1
-delta_w = (1-rep)*w_laser
+delta_w = (1-rep)*w
 #delta_w = w_laser - gap1_fl/jcl.hbar_fs
 rabi_freq = np.sqrt(delta_w**2 + w1**2)
-
-
+#rabi_freq = 2*vf*A0/jcl.hbar_fs*np.sqrt(1+E**2/(vf**2*A0**2))
+w**2*jcl.hbar_fs/(vf*A0)
 fig, ax = plt.subplots(dpi=200)
 ax.plot(gamma_list, char_freq[:,3], ls='--', c=color_list[3], marker='.',
         label=f'Numerical ang. freq')
 ax.plot(gamma_fl, rabi_freq, ls='--', c='red', marker='.',
         label=f'Rabi ang. freq')
-ax.set_title('Characteristic Frequencies in $E=0.5E_0$')
+ax.set_title('Characteristic Frequencies in $E=0.5\\hbar\\omega$')
 ax.set_xlabel('Intensity parameter $\\Gamma$')
 ax.set_ylabel('Ang. frequency')
 ax.legend()
