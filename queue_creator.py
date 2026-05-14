@@ -33,7 +33,7 @@ def check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vect
     return flag
 
 # Name of the file
-file_name = 'aa_calcs'
+file_name = 'precision_calcs'
 
 
 # Type of Light
@@ -94,6 +94,6 @@ print(f'There are {n_lines} calculations queued!')
 ### After checking the file, this is to launch the actual calculations!
 
 
-command = f'cat {file_name}.txt | xargs -L 1 -P 6 ./launcher.sh'
+command = f'cat Calcs_files/{file_name}.txt | xargs -L 1 -P 6 ./launcher.sh'
 print('screen -S mass_neq')
 print(command)

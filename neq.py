@@ -71,7 +71,7 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
     N_measures = meas_per_T*n_periods
     # Parameters of the laser
     w = E/jcl.hbar_fs 
-    T = 2*np.pi/w                            
+    T = 2*np.pi/w
     # Time of  (fs)
 
     t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)      

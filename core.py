@@ -2,6 +2,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from scipy.spatial import cKDTree
+from scipy.fft import rfft, rfftfreq   
 
 # Random vector generation
 def random_vector(N, n_rand):
@@ -96,10 +97,12 @@ def frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T, range_sear
     """
     occ_drop_list, N_measures = extract_occ_time(t_vec_measures, EF_list, n_E_list, hE_list)
 
-    fourier_occ = np.abs(np.fft.rfft(occ_drop_list))
+    fourier_occ = np.abs(rfft(occ_drop_list))
     dt = t_vec_measures[1] - t_vec_measures[0]
-    df = 1/dt/N_measures
-    freq = np.arange(0, fourier_occ.shape[1], 1)*df*(2*np.pi)
+    #df = 1/dt/N_measures
+    #freq = np.arange(0, fourier_occ.shape[1], 1)*df*(2*np.pi)
+    freq = rfftfreq(N_measures, dt)*(2*np.pi)
+    df = freq[1] - freq[0]
     char_freq = np.zeros(occ_drop_list.shape[0])
     max_freq_ind = np.zeros(occ_drop_list.shape[0], dtype=np.int64)
     # Eliminating the first element of the arrays of freq and occ, as it always explodes
