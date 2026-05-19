@@ -439,21 +439,95 @@ Phi0 = 2*np.pi*jcl.hbar_fs
 A0 = gamma_list*Phi0/(2*jcl.a_cc*np.sqrt(3))
 vf = 3*jcl.a_cc*abs(t)/(2*jcl.hbar_fs)
 w1 = 2*vf*A0/jcl.hbar_fs
-#w1 = np.sqrt(3)*t*gamma_fl*np.pi/jcl.hbar_fs/2
-#w1 = 3*t**2*gamma_list**2*np.pi**2
+w1 = np.sqrt(3)*t*gamma_fl*np.pi/jcl.hbar_fs
+
 rep = 1
 delta_w = (1-rep)*w
 #delta_w = w_laser - gap1_fl/jcl.hbar_fs
 rabi_freq = np.sqrt(delta_w**2 + w1**2)
 #rabi_freq = 2*vf*A0/jcl.hbar_fs*np.sqrt(1+E**2/(vf**2*A0**2))
 w**2*jcl.hbar_fs/(vf*A0)
+
+
 fig, ax = plt.subplots(dpi=200)
 ax.plot(gamma_list, char_freq[:,3], ls='--', c=color_list[3], marker='.',
-        label=f'Numerical ang. freq')
+        label=f'$\\omega_c$ (NUMERICAL RESULTS)')
 ax.plot(gamma_fl, rabi_freq, ls='--', c='red', marker='.',
-        label=f'Rabi ang. freq')
+        label=f'$\\Omega$')
+ax.plot(gamma_fl, rabi_freq/2, ls='--', c='orange', marker='.',
+        label=f'$\\Omega/2$')
 ax.set_title('Characteristic Frequencies in $E=0.5\\hbar\\omega$')
 ax.set_xlabel('Intensity parameter $\\Gamma$')
 ax.set_ylabel('Ang. frequency')
 ax.legend()
 
+#np.save('Out/char_freqs.npy', char_freq[:,3])
+
+#%% Time evolution of rho(t)
+from scipy.linalg import expm
+
+gamma = 0.025
+w1 = np.sqrt(3)*2.7*gamma*np.pi/jcl.hbar_fs
+#rho0 = 0.5*np.ones((2, 2))
+rho0 = np.array([[0, 0], [0, 1]])
+
+delta_w = 0
+Ham_rot = np.zeros((2, 2))
+Ham_rot[0, 0] = delta_w
+Ham_rot[0, 1] = Ham_rot[1, 0] = w1
+Ham_rot[1, 1] = -delta_w
+Ham_rot *= jcl.hbar_fs/2
+
+autV, autE = np.linalg.eigh(Ham_rot)
+
+
+def time_evolution(t):
+    return expm(-1j*Ham_rot*t/jcl.hbar_fs)@ rho0 @expm(1j*Ham_rot*t/jcl.hbar_fs)
+
+
+broad = 0.01
+dE = broad / 1.5
+EF_list = np.arange(autV[0] - 20*dE, autV[1] + 20*dE, dE)
+
+# Initial test
+DOS_list = np.zeros((len(t_vec_measures), len(EF_list)))
+
+for (j, E_step) in enumerate(EF_list):
+    DOS_list[0, j] = broad/np.pi*np.trace(rho0@np.linalg.inv((E_step*np.eye(2) - Ham_rot)@(E_step*np.eye(2) - Ham_rot) + np.eye(2)*broad**2))
+
+fig, ax = plt.subplots()
+ax.plot(EF_list, DOS_list[0], color='blue')
+#ax.legend()
+ax.set_xlabel('Energy (eV)')
+ax.set_title('DOS')
+ax.vlines(autV, ymin=0, ymax=30, color='grey', ls='--', alpha=0.5)
+
+
+# Actual evolution
+dt = t_vec_measures[1] - t_vec_measures[0]
+rho = np.copy(rho0)
+evol_eigen = np.diag(np.exp(-1j*autV*dt/jcl.hbar_fs))
+
+U = expm(-1j*Ham_rot*dt/jcl.hbar_fs)
+for (i, t) in enumerate(t_vec_measures):
+    for (j, E_step) in enumerate(EF_list):
+        DOS_list[i, j] = broad/np.pi*np.trace(rho @ np.linalg.inv((E_step*np.eye(2) - Ham_rot)@(E_step*np.eye(2) - Ham_rot) + np.eye(2)*broad**2))
+    rho = U @ rho @ np.conjugate(U.T)
+    #rho = np.conj(autE.T) @ np.conj(evol_eigen) @ (autE @ rho @ np.conj(autE.T))@ evol_eigen@ autE
+    if i % 1000 == 0:
+        print(i)
+
+
+Ham_og = jcl.hbar_fs*w/2*np.diag([1, -1])
+
+
+
+
+fig, ax = plt.subplots()
+for i in range(N_measures):
+    ax.plot(EF_list, DOS_list[i], color=cmap(norm(t_vec_measures[i]/T)), label=f't={round(t_vec_measures[i]/T, 3)}T')
+#ax.legend()
+cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
+ax.set_xlabel('Energy (eV)')
+ax.set_title('DOS')
+ax.vlines(autV, ymin=0, ymax=30, color='grey', ls='--', alpha=0.5)

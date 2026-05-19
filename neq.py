@@ -25,10 +25,10 @@ from datetime import timedelta
 #%% Other important functions
 
 def check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
-                        n_periods, meas_per_T, steps_per_T):
+                        n_periods, meas_per_T, steps_per_T, type_ham):
     N = 2**N_pot
     # Names of file and info on graphs
-    folder_name = f'{modifier_id}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
+    folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
     # Check if file exists
     try:
         os.makedirs(f'Out/{folder_name}', exist_ok=False)
@@ -53,13 +53,20 @@ def check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vect
 #%% NEQ Calcs in Full
 # ------------------------------------------------------------------------------
 ####  Defining a hamiltonian (own)
-def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
-            n_periods, meas_per_T, steps_per_T, force_recalc=False, show_figs=True):
-    N = 2**N_pot
-    N1 = N2 = int(np.sqrt(N))//2
-    S = get_positions_graphene(N1, N2)
 
-    Ham = create_graphene_ham(S, N1, N2, out_format='ELL')
+def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
+            n_periods, meas_per_T, steps_per_T, type_ham, force_recalc=False, show_figs=True):
+    if type_ham == 'basic':
+        type_ham = ''
+        N = 2**N_pot
+        N1 = N2 = int(np.sqrt(N))//2
+        S = get_positions_graphene(N1, N2)
+        Ham = create_graphene_ham(S, N1, N2, out_format='ELL')
+
+    elif type_ham == 'jcl':
+        N = 2**N_pot
+        positions = jcl.lattice_hexagonal(N)
+        Ham = jcl.H_graphene(positions, -2.7 + 0j, periodic=True, type_H='ELL')
 
     dE = (Ham.bounds[1] - Ham.bounds[0])/2
     # ------------------------------------------------------------------------------
@@ -126,13 +133,13 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
     t_vec_measures = np.linspace(0, n_periods*T, N_measures)
     
     # Names of file and info on 
-    folder_name = f'{modifier_id}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
+    folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
     fig_title_info = f'$N={{{2**N_pot}}}$, E={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}, R={N_random_vector}'
     pulse_suptitle = fr'$E={E}, \omega = {w:.3f}$ fs$^{{-1}}, T={T:.3f}$ fs'
     extra_text = f'Light: {modifier_id}\n$\\delta E={broad:.3f}$\n# Rand Vecs: {N_random_vector}\nMeasures/T={meas_per_T}\nSteps/T={steps_per_T}'
 
     already_calc = check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
-                            n_periods, meas_per_T, steps_per_T)
+                            n_periods, meas_per_T, steps_per_T, type_ham)
     perform_calc = force_recalc or (not already_calc)
 
     if perform_calc:
@@ -407,11 +414,12 @@ if __name__ == '__main__':
     # steps/T
     steps_per_T = int(sys.argv[11])
     # Force recalculation (default is false)
+    type_ham = sys.argv[12]
     try:
-        force_recalc = bool(sys.argv[12])
+        force_recalc = bool(sys.argv[13])
     except IndexError:
         force_recalc = False
 
     # Call general function to get the job done
     neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
-                n_periods, meas_per_T, steps_per_T, force_recalc, False)
+                n_periods, meas_per_T, steps_per_T, type_ham, force_recalc, False)
