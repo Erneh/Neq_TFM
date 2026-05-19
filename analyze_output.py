@@ -59,6 +59,7 @@ def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
         dos_list /= R
         dosn_list /= R
     return EF_list, n_E_list, dos_list, dosn_list
+#%% Only one calculation
 # ------------------------------------------------------------------------------
 ####  Defining a hamiltonian (own)
 N_pot = 19
@@ -372,15 +373,15 @@ fig, ax = plt.subplots()
 #ax.plot(gamma_list, char_freq[:,2], ls='--', c=color_list[2], marker='.',
 #        label=f'$E = \\mu$ eV')
 ax.plot(gamma_list, char_freq[:,3], ls='--', c=color_list[3], marker='.',
-        label=f'$E = 0.5E_0 + \\mu$ eV')
+        label=f'$E = 0.5\\hbar\\omega$')
 ax.plot(gamma_list, char_freq[:,4], ls='--', c=color_list[4], marker='.',
-        label=f'$E = 1E_0 + \\mu$ eV')
+        label=f'$E =1\\hbar\\omega$')
 ax.set_xlabel(f'Intensity $\\Gamma$')
 ax.set_ylabel('Angular frequency (las. period$^{-1}$)')
 ax.set_title(f'Characteristic frequencies for different intensities')
 ax.legend()
 ax.set_xticks(gamma_list)
-fig.suptitle(f'$N=2^{{{N_pot}}}$, E_0={E} eV, Temp={Temp} K, $\\mu$={mu} eV')
+fig.suptitle(f'$N={{{2**N_pot}}}$, $\\hbar\\omega$={E} eV, Temp={Temp} K, $\\mu$={mu} eV')
 
 
 #%% Fitting to see if a relation is even possible
@@ -466,12 +467,13 @@ ax.legend()
 #%% Time evolution of rho(t)
 from scipy.linalg import expm
 
-gamma = 0.025
+gamma = 10*0.025
 w1 = np.sqrt(3)*2.7*gamma*np.pi/jcl.hbar_fs
 #rho0 = 0.5*np.ones((2, 2))
-rho0 = np.array([[0, 0], [0, 1]])
-
+#rho0 = np.array([[0, 0], [0, 1]])
+rho0 = 0.5*np.array([[1, -1], [-1, 1]])
 delta_w = 0
+
 Ham_rot = np.zeros((2, 2))
 Ham_rot[0, 0] = delta_w
 Ham_rot[0, 1] = Ham_rot[1, 0] = w1
@@ -480,6 +482,8 @@ Ham_rot *= jcl.hbar_fs/2
 
 autV, autE = np.linalg.eigh(Ham_rot)
 
+cmap = plt.cm.plasma 
+norm = Normalize(vmin=t_vec.min()/T, vmax=t_vec.max()/T)
 
 def time_evolution(t):
     return expm(-1j*Ham_rot*t/jcl.hbar_fs)@ rho0 @expm(1j*Ham_rot*t/jcl.hbar_fs)
@@ -494,7 +498,7 @@ DOS_list = np.zeros((len(t_vec_measures), len(EF_list)))
 
 for (j, E_step) in enumerate(EF_list):
     DOS_list[0, j] = broad/np.pi*np.trace(rho0@np.linalg.inv((E_step*np.eye(2) - Ham_rot)@(E_step*np.eye(2) - Ham_rot) + np.eye(2)*broad**2))
-
+    #DOS_list[0, j] = broad/np.pi*np.trace(rho0)
 fig, ax = plt.subplots()
 ax.plot(EF_list, DOS_list[0], color='blue')
 #ax.legend()
@@ -504,30 +508,52 @@ ax.vlines(autV, ymin=0, ymax=30, color='grey', ls='--', alpha=0.5)
 
 
 # Actual evolution
-dt = t_vec_measures[1] - t_vec_measures[0]
+t_vec = np.linspace(0, 50*T, 5000)
+dt = t_vec[1] - t_vec[0]
 rho = np.copy(rho0)
 evol_eigen = np.diag(np.exp(-1j*autV*dt/jcl.hbar_fs))
 
 U = expm(-1j*Ham_rot*dt/jcl.hbar_fs)
-for (i, t) in enumerate(t_vec_measures):
+DOS_list2 = np.zeros((len(t_vec)))
+
+for (i, t) in enumerate(t_vec):
     for (j, E_step) in enumerate(EF_list):
-        DOS_list[i, j] = broad/np.pi*np.trace(rho @ np.linalg.inv((E_step*np.eye(2) - Ham_rot)@(E_step*np.eye(2) - Ham_rot) + np.eye(2)*broad**2))
+        #DOS_list[i, j] = broad/np.pi*np.trace(rho @ np.linalg.inv((E_step*np.eye(2) - Ham_rot)@(E_step*np.eye(2) - Ham_rot) + np.eye(2)*broad**2))
+        DOS_list2[i] = np.trace(rho@rho0 )
     rho = U @ rho @ np.conjugate(U.T)
     #rho = np.conj(autE.T) @ np.conj(evol_eigen) @ (autE @ rho @ np.conj(autE.T))@ evol_eigen@ autE
     if i % 1000 == 0:
         print(i)
 
+t_vec = np.linspace(0, 50*T, 5000)
+
+for (i) in range(len(t_vec)):
+    U = expm(-1j*Ham_rot*t_vec[i]/jcl.hbar_fs)
+
+    rho = U @ rho @ np.conjugate(U.T)
+    DOS_list2[i] = np.trace(rho@rho0 )
+    #rho = np.conj(autE.T) @ np.conj(evol_eigen) @ (autE @ rho @ np.conj(autE.T))@ evol_eigen@ autE
+    if i % 1000 == 0:
+        print(i)
+plt.plot(t_vec/T,DOS_list2[:])
+print(DOS_list2)
 
 Ham_og = jcl.hbar_fs*w/2*np.diag([1, -1])
 
 
 
 
+
 fig, ax = plt.subplots()
 for i in range(N_measures):
-    ax.plot(EF_list, DOS_list[i], color=cmap(norm(t_vec_measures[i]/T)), label=f't={round(t_vec_measures[i]/T, 3)}T')
+    ax.plot(EF_list, DOS_list[i], label=f't={round(t_vec_measures[i]/T, 3)}T')
+    #ax.plot(EF_list, DOS_list[i], color=cmap(norm(t_vec_measures[i]/T)), label=f't={round(t_vec_measures[i]/T, 3)}T')
 #ax.legend()
 cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
 ax.set_xlabel('Energy (eV)')
 ax.set_title('DOS')
+ax.set_ylim(0, 1.2)
 ax.vlines(autV, ymin=0, ymax=30, color='grey', ls='--', alpha=0.5)
+
+
+

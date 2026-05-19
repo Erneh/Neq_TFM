@@ -87,7 +87,8 @@ def extract_occ_time(t_vec_measures, EF_list, n_E_list, hE_list):
     
     for (i, hE) in enumerate(hE_list):
         ind_time = np.where(EF_list[i,:] > hE)[0][0]
-        occ_drop_list[i] = np.array([n_E_list[i,ind_time] for i in range(N_measures)])
+        #occ_drop_list[i] = np.array([n_E_list[i,ind_time] for i in range(N_measures)])
+        occ_drop_list[i] = n_E_list[:,ind_time]
     return occ_drop_list, N_measures
 
 
@@ -109,7 +110,7 @@ def frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T, range_sear
     freq = freq[1:]
     fourier_occ = fourier_occ[:,1:]
     # Checking only the frequencies between 0 and 1 (in laser period units)
-    inf_freqs = freq/(2*np.pi)*T < range_search - df
+    inf_freqs = freq/(2*np.pi)*T < range_search - df/(2*np.pi)
     for (i, hE) in enumerate(hE_list):
         #max_freq_ind[i] = (np.where(fourier_occ[i, inf_freqs] == max(fourier_occ[i][inf_freqs])))[0][0]
         max_freq_ind[i] = fourier_occ[i, inf_freqs].argmax()
