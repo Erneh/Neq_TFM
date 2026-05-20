@@ -71,11 +71,8 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
     elif type_ham == 'hbn':
         N = 2**N_pot
         N1 = N2 = int(np.sqrt(N))//2
-        S = get_positions_graphene(N1, N2)
-        M = 2.7
-        t = -2.7
-        a = 0.25
-        Ham = create_hex_ham(S, N1, N2, t=t, M=M, a_l=a, out_format='ELL')
+        S = get_positions_graphene(N1, N2, a_l = 0.25)
+        Ham = create_hex_ham(S, N1, N2, t=-2.7, M=2.7, a_l=0.25, out_format='ELL')
 
     dE = (Ham.bounds[1] - Ham.bounds[0])/2
     # ------------------------------------------------------------------------------

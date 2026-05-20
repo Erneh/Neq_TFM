@@ -33,14 +33,14 @@ def check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vect
     return flag
 
 # Name of the file
-file_name = 'jcl_calcs'
+file_name = 'hbn_calcs'
 
 
 # Type of Light
-modifier_id_list = ['circle']
-ham_type_list = ['basic']
+modifier_id_list = ['circle', 'linear']
+ham_type_list = ['hbn']
 # Power to which the number of atoms is 'powered'
-N_pot_list = [20]
+N_pot_list = [17]
 # Energy in pulse                        
 E_list = [1.0]     
 # Temperature                       
@@ -48,14 +48,14 @@ Temp_list = [1e-9]
 # Chemical potential
 mu_list = [0.01]
 # Intensity param     (no units)
-gamma_list = np.linspace(0.000, 0.050, 11)
+gamma_list = np.linspace(0.000, 0.025, 6)
 # Amount of random vectors used in calculation
-N_random_vector_list = [2]
+N_random_vector_list = [1]
 M_list = [0]
 # # periods included in sims
-n_periods_list = [200]
+n_periods_list = [100]
 # Amount of measures per period
-meas_per_T_list = [32]
+meas_per_T_list = [16]
 # steps/T
 steps_per_T_list = [1000]
 
