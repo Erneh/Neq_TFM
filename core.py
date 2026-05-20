@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.sparse as sp
+import os
 
 from scipy.spatial import cKDTree
 from scipy.fft import fft, fftfreq, rfft, rfftfreq   
@@ -55,6 +56,82 @@ def DOS_sparse(Ham, E_tol, E_list, M, n_random = 10):
 
     g_Jackson = jackson_kernel(np.arange(0, M+1, 1), M)
     return np.sum(delta_E*g_Jackson[:,None]*Cheb_H[:,None], axis=0)/dE/N
+
+
+def check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
+                        n_periods, meas_per_T, steps_per_T, type_ham, ham_params=None):
+    N = 2**N_pot
+    # Names of file and info on graphs
+    if type_ham == 'hbn':
+        if ham_params is None:
+            mass = 0.5
+        else:
+            mass = ham_params
+        folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}_m={mass:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
+    else:
+        folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
+    # Check if file exists
+    try:
+        os.makedirs(f'Out/{folder_name}', exist_ok=False)
+        os.rmdir(f'Out/{folder_name}')
+        flag = False
+    except FileExistsError:
+        flag = True
+
+    # Check if the data is correctly saved in the files and computation is finished
+    if flag:
+        try:
+            EF_list = np.load(f'Out/{folder_name}/E.npy')
+            np.load(f'Out/{folder_name}/n_E.npy')
+            np.load(f'Out/{folder_name}/dosn_E.npy')
+            np.load(f'Out/{folder_name}/dos_E.npy')
+            if np.sum(np.abs(EF_list)) == 0:
+                flag = False
+        except FileNotFoundError:
+            flag = False
+    return flag
+
+
+def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
+                        n_periods, meas_per_T, steps_per_T, type_ham, ham_params, R=None):
+    '''
+    Script to load the data of an already performed calculation
+    '''
+    if type_ham == 'hbn':
+        if ham_params is None:
+            mass = 0.5
+        else:
+            mass = ham_params
+        folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}_m={mass:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
+    else:
+        folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
+
+    # Loading the info in the .npy files available at the moment
+    if N_random_vector == 1:
+        print(f'1/1 calculations finished! Loading results...')
+        EF_list = np.load(f'Out/{folder_name}/E.npy')
+        n_E_list = np.load(f'Out/{folder_name}/n_E.npy')
+        dos_list = np.load(f'Out/{folder_name}/dos_E.npy')
+        dosn_list = np.load(f'Out/{folder_name}/dosn_E.npy')
+    else:
+        # Deciding the amount of random vectors being used in the sim
+        R_total = len(os.listdir(f'Out/{folder_name}/Ene_R'))
+        if R is None:
+            R = R_total
+
+        print(f'{R_total}/{N_random_vector} calculations finished! Loading {R} results...')
+        EF_list = np.load(f'Out/{folder_name}/Ene_R/1.npy')
+        n_E_list = np.zeros_like(EF_list)
+        dos_list = np.zeros_like(EF_list)
+        dosn_list = np.zeros_like(EF_list)
+        for i in range(1, R+1):
+            n_E_list += np.load(f'Out/{folder_name}/noc_R/{i}.npy')
+            dos_list += np.load(f'Out/{folder_name}/dos_R/{i}.npy')
+            dosn_list += np.load(f'Out/{folder_name}/dosn_R/{i}.npy')
+        n_E_list /= R
+        dos_list /= R
+        dosn_list /= R
+    return EF_list, n_E_list, dos_list, dosn_list
 
 
 # Completely experimental!!! Do not use, it WONT WORK

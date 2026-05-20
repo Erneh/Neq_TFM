@@ -5,32 +5,7 @@ Creates the file containing the parameters to be added to the queue
 import numpy as np
 import os
 import subprocess
-
-def check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
-                        n_periods, meas_per_T, steps_per_T, type_ham):
-    N = 2**N_pot
-    # Names of file and info on graphs
-    folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
-    # Check if file exists
-    try:
-        os.makedirs(f'Out/{folder_name}', exist_ok=False)
-        os.rmdir(f'Out/{folder_name}')
-        flag = False
-    except FileExistsError:
-        flag = True
-
-    # Check if the data is correctly saved in the files and computation is finished
-    if flag:
-        try:
-            EF_list = np.load(f'Out/{folder_name}/E.npy')
-            np.load(f'Out/{folder_name}/n_E.npy')
-            np.load(f'Out/{folder_name}/dosn_E.npy')
-            np.load(f'Out/{folder_name}/dos_E.npy')
-            if np.sum(np.abs(EF_list)) == 0:
-                flag = False
-        except FileNotFoundError:
-            flag = False
-    return flag
+from core import check_if_calculated
 
 # Name of the file
 file_name = 'hbn_calcs'
@@ -42,7 +17,7 @@ ham_type_list = ['hbn']
 # Power to which the number of atoms is 'powered'
 N_pot_list = [17]
 # Energy in pulse                        
-E_list = [1.0]     
+E_list = [1.1]     
 # Temperature                       
 Temp_list = [1e-9]
 # Chemical potential
