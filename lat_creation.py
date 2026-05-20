@@ -26,8 +26,7 @@ def get_positions(N1, N2, rLat, Rat):
     return Rat_exp + R_grid
 
 
-def get_positions_graphene(N1, N2):
-    a_l = 0.24595
+def get_positions_graphene(N1, N2, a_l = 0.24595): 
     a_cc =a_l/3**0.5
     a1=np.array([np.sqrt(3)*a_cc/2,a_cc/2])
     a2=np.array([0,a_cc])

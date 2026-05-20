@@ -33,8 +33,8 @@ def create_ham(S, N1, N2, rLat, thresh_1NN, t=-2.7, M=0.0, per=True, out_format 
     # Make periodic part
     Pos_dif = Pos_dif - np.floor(Pos_dif/L + 0.5)*L
     # Relative dist matrices
-    Vx = sp.csr_matrix((Pos_dif[:,0], (inds[:,0], inds[:,1])), shape=Ham.shape)
-    Vy = sp.csr_matrix((Pos_dif[:,1], (inds[:,0], inds[:,1])), shape=Ham.shape)
+    Vx = sp.csr_matrix((Pos_dif[:,0], (inds[:,0], inds[:,1])), shape=Ham.shape) + 1e-16*Ham
+    Vy = sp.csr_matrix((Pos_dif[:,1], (inds[:,0], inds[:,1])), shape=Ham.shape) + 1e-16*Ham
 
     # Conjugate matrix
     conjugate_mat = sp.csr_matrix((conj_list, (inds[:,0], inds[:,1])), shape=(N, N))
@@ -50,12 +50,14 @@ def create_ham(S, N1, N2, rLat, thresh_1NN, t=-2.7, M=0.0, per=True, out_format 
         return H_ell
 
 
-def create_graphene_ham(S, N1, N2, t=-2.7, M=0.0, per=True, out_format='CSR'):
+def create_hex_ham(S, N1, N2, t=-2.7, M=0.0, a_l = 0.24595, per=True, out_format='CSR'):
     """
     Creates a hamiltonian pertaining to graphene with less inputs than normal and in
     the ELL format to be compatible with the rest of the code
+
+    By default, it does graphene, but it can make anythinw with the same lattice
+    vectors
     """
-    a_l = 0.24595
     a_cc =a_l/3**0.5
     a1=np.array([np.sqrt(3)*a_cc/2,a_cc/2])
     a2=np.array([0,a_cc])

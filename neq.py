@@ -14,7 +14,7 @@ import jclsquant as jcl
 import sys
 sys.path.append('Code/Neq_TFM')
 
-from ham_creation import create_graphene_ham
+from ham_creation import create_hex_ham
 from lat_creation import get_positions_graphene
 from core import DOS_sparse
 from matplotlib.colors import Normalize
@@ -61,12 +61,21 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
         N = 2**N_pot
         N1 = N2 = int(np.sqrt(N))//2
         S = get_positions_graphene(N1, N2)
-        Ham = create_graphene_ham(S, N1, N2, out_format='ELL')
+        Ham = create_hex_ham(S, N1, N2, out_format='ELL')
 
     elif type_ham == 'jcl':
         N = 2**N_pot
         positions = jcl.lattice_hexagonal(N)
         Ham = jcl.H_graphene(positions, -2.7 + 0j, periodic=True, type_H='ELL')
+    
+    elif type_ham == 'hbn':
+        N = 2**N_pot
+        N1 = N2 = int(np.sqrt(N))//2
+        S = get_positions_graphene(N1, N2)
+        M = 2.7
+        t = -2.7
+        a = 0.25
+        Ham = create_hex_ham(S, N1, N2, t=t, M=M, a_l=a, out_format='ELL')
 
     dE = (Ham.bounds[1] - Ham.bounds[0])/2
     # ------------------------------------------------------------------------------
