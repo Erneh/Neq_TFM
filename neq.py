@@ -16,7 +16,7 @@ sys.path.append('Code/Neq_TFM')
 
 from ham_creation import create_hex_ham
 from lat_creation import get_positions_graphene
-from core import DOS_sparse
+from core import DOS_sparse, check_if_calculated
 from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 # Benchmarking
@@ -29,16 +29,31 @@ from datetime import timedelta
 
 def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
             n_periods, meas_per_T, steps_per_T, type_ham, ham_params = None, force_recalc=False, show_figs=True):
+    N = 2**N_pot
+    # Print of parameters to check results
+    print('PARAMETERS OF CALCULATION')
+    print(f'Type of hamiltonian is {type_ham}')
+    print(f'Hamiltonian parameter is {ham_params}')
+    print(f'Type of light is {modifier_id}')
+    print(f'# of atoms: {N}')
+    print(f'# of moments: {M}')
+    print(f'Energy: {E} eV')
+    print(f'Intensity param: {gamma}')
+    print(f'Temperature: {Temp} K')
+    print(f'Chem potential: {mu} eV')
+    print(f'# of Random Vectors: {N_random_vector}')
+    print(f'# of periods: {n_periods}')
+    print(f'steps/period: {steps_per_T}')
+    print(f'# measures/T: {meas_per_T}')
+
     if type_ham == 'basic':
         type_ham = ''
-        N = 2**N_pot
         N1 = N2 = int(np.sqrt(N))//2
         S = get_positions_graphene(N1, N2)
         Ham = create_hex_ham(S, N1, N2, out_format='ELL')
         folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
 
     elif type_ham == 'jcl':
-        N = 2**N_pot
         positions = jcl.lattice_hexagonal(N)
         Ham = jcl.H_graphene(positions, -2.7 + 0j, periodic=True, type_H='ELL')
         folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
@@ -48,7 +63,6 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
             mass = 0.5
         else:
             mass = ham_params
-        N = 2**N_pot
         N1 = N2 = int(np.sqrt(N))//2
         S = get_positions_graphene(N1, N2, a_l = 0.25)
         Ham = create_hex_ham(S, N1, N2, t=-2.7, M=mass, a_l=0.25, out_format='ELL')
@@ -92,20 +106,7 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
     obs_list = [['n', N_measures, M]]
 
 
-    # Print of parameters to check results
-    print('PARAMETERS OF CALCULATION')
-    print()
-    print(f'Type of light is {modifier_id}')
-    print(f'# of atoms: {N}')
-    print(f'# of moments: {M}')
-    print(f'Energy: {E} eV')
-    print(f'Intensity param: {gamma}')
-    print(f'Temperature: {Temp} K')
-    print(f'Chem potential: {mu} eV')
-    print(f'# of Random Vectors: {N_random_vector}')
-    print(f'# of periods: {n_periods}')
-    print(f'steps/period: {steps_per_T}')
-    print(f'# measures/T: {meas_per_T}')
+    
 
     # Say approximate calculation time
     aprox_time = 265/(2**17*362*20*1000*4)*(N*M*n_periods*steps_per_T*meas_per_T)
@@ -398,14 +399,16 @@ if __name__ == '__main__':
     meas_per_T = int(sys.argv[10])
     # steps/T
     steps_per_T = int(sys.argv[11])
-    # Force recalculation (default is false)
+    # Type of hamiltonian used in the calculations
     type_ham = sys.argv[12]
-
+    # Parameter of the given hamiltonian
+    ham_param = float(sys.argv[13])
+    # Force recalculation (default is false)
     try:
-        force_recalc = bool(sys.argv[13])
+        force_recalc = bool(sys.argv[14])
     except IndexError:
         force_recalc = False
 
     # Call general function to get the job done
     neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
-                n_periods, meas_per_T, steps_per_T, type_ham, force_recalc, False)
+                n_periods, meas_per_T, steps_per_T, type_ham, ham_param, force_recalc, False)

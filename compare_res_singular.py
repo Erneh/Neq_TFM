@@ -30,53 +30,61 @@ from datetime import timedelta
 from core import frequency_analysis
 
 # ------------------------------------------------------------------------------
-####  Defining a hamiltonian (own)
-N_pot = 17
-N = 2**N_pot
-N1 = N2 = int(np.sqrt(N))//2
-S = get_positions_graphene(N1, N2)
-
-Ham = create_graphene_ham(S, N1, N2, out_format='ELL')
-
-dE = (Ham.bounds[1] - Ham.bounds[0])/2
-# ------------------------------------------------------------------------------
-#### PARAMETERS   
+#### PARAMETERS OF THE MODEL
+## PHYSICAL
+# Type of light               
+modifier_id = 'linear'
+# Hamiltonian type
+type_ham = 'hbn'
+# Parameters of the ham (only read if hbn)
+ham_params = 0.5
 # Energy in pulse                        
-E = 1            
+E = 1.1
 # Temperature                       
 Temp = 1e-9
 # Chemical potential
 mu = 0.01
+# Intensity param     (no units)
+gamma_list = np.linspace(0.000, 0.025, 6)                   
+
+## SIMULATION
+# Size of hamiltonian
+N_pot = 17
+N = 2**N_pot
 # Amount of periods to be simulated
 n_periods = 100
-# Amount of half multiples of E where the occupation is obtained
-hE_reps = 2
-# ??
-tau = 0.0 
-# Amount of measures per period
-meas_per_T = 8
-N_measures = meas_per_T*n_periods
-# Parameters of the laser
-w = E/jcl.hbar_fs 
-T = 2*np.pi/w                            
-# Time of  (fs)
+# Simulation steps per period
 steps_per_T = 1000
-t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)      
-# Type of light               
-modifier_id = 'circle'
-# Intensity param     (no units)
-gamma = 0.010            
-
+# Amount of measures per period
+meas_per_T = 16
+N_measures = meas_per_T*n_periods
 # Amount of random vectors used in calculation
 N_random_vector = 1
-
 # Momenta
-#M = int(np.sqrt(N))
-M = 362
-# Broadening in the energies
-broad = dE*np.pi/M
+M = int(np.sqrt(N))
+#M = 362
+
+## RESULT ANALYSIS
+# Range of searching the maximim frequency (in period^-1 units)
 range_search = 1
+
+## CALCULATED PARAMS
+# Parameters of the laser
+w = E/jcl.hbar_fs 
+T = 2*np.pi/w    
+t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)   
+# Amount of half multiples of E where the occupation is obtained
+hE_reps = 2
+# Broadening in the energies
 t_vec_measures = np.linspace(0, n_periods*T, N_measures)
+
+
+hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
+color_list = ['olivedrab', 'red', 'orange', 'blue', 'darkviolet']
+t_vec_measures = np.linspace(0, n_periods*T, N_measures)
+
+
+fig_title_info = f'N={2**N_pot}, $\\hbar \\omega$={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}'
 # ------------------------------------------------------------------------------
 # First element
 N_pot = 17
@@ -84,13 +92,12 @@ mu = 0.01
 modifier_id = 'linear'
 # Names of file and info on graphs
 folder_name = f'{modifier_id}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
-fig_title_info = f'N={2**N_pot}, $\\hbar \\omega$={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}'
+
 pulse_suptitle = fr'$E={E}, \omega = {w:.3f}$ fs$^{{-1}}, T={T:.3f}$ fs'
-extra_text = f'Light: {modifier_id}\n$\\delta E={broad:.3f}$\n# Rand Vecs: {N_random_vector}\nMeasures/T={meas_per_T}\nSteps/T={steps_per_T}'
 
 # Loading the info in the .npy files
-EF_list1 = np.load(f'Out/{folder_name}/E.npy')
-n_E_list1 = np.load(f'Out/{folder_name}/n_E.npy')
+EF_list1, n_E_list1, dos_list1, dosn_list1 = load_data(modifier_id, N_pot, E, Temp, mu, gamma, 
+                        M, N_random_vector, n_periods, meas_per_T, steps_per_T, type_ham, ham_params, R=None)
 
 # Readying identifier on graph
 label1 = f"linear"

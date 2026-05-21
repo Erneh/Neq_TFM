@@ -31,7 +31,7 @@ from datetime import timedelta
 #### PARAMETERS OF THE MODEL
 ## PHYSICAL
 # Type of light               
-modifier_id = 'circle'
+modifier_id = 'linear'
 # Hamiltonian type
 type_ham = 'hbn'
 # Parameters of the ham (only read if hbn)

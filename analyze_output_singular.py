@@ -42,7 +42,7 @@ dE = (Ham.bounds[1] - Ham.bounds[0])/2
 #### PARAMETERS OF THE MODEL
 ## PHYSICAL
 # Type of light               
-modifier_id = 'circle'
+modifier_id = 'linear'
 # Hamiltonian type
 type_ham = 'hbn'
 # Parameters of the ham (only read if hbn)
