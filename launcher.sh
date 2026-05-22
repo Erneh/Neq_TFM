@@ -14,6 +14,7 @@ HAMTYPE=${12}
 HAMPARAM=${13}
 if [ $HAMTYPE = "basic" ]; then
     HAMTYPE=""
+    LOG_LOC="Out/${MODIFIER_ID}${HAMTYPE}/G=${GAMMA}_E=${E}_Temp=${TEMP}_mu=${MU}/N=${N_POT}_M=${M}_R=${NR}_nT=${NT}_measT=${NMEAST}_stT=${STPERT}"
 elif [ $HAMTYPE = "hbn" ]; then
     LOG_LOC="Out/${MODIFIER_ID}${HAMTYPE}/G=${GAMMA}_E=${E}_Temp=${TEMP}_mu=${MU}_m=${HAMPARAM}/N=${N_POT}_M=${M}_R=${NR}_nT=${NT}_measT=${NMEAST}_stT=${STPERT}"  
 else

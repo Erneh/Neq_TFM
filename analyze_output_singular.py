@@ -27,17 +27,6 @@ from matplotlib.cm import ScalarMappable
 from time import time
 from datetime import timedelta
 
-#%% Only one calculation
-# ------------------------------------------------------------------------------
-####  Defining a hamiltonian (own)
-N_pot = 17
-N = 2**N_pot
-N1 = N2 = int(np.sqrt(N))//2
-S = get_positions_graphene(N1, N2)
-
-Ham = create_hex_ham(S, N1, N2, out_format='ELL')
-
-dE = (Ham.bounds[1] - Ham.bounds[0])/2
 # ------------------------------------------------------------------------------
 #### PARAMETERS OF THE MODEL
 ## PHYSICAL
@@ -57,6 +46,9 @@ mu = 0.01
 gamma = 0.020
 
 ## SIMULATION
+# Size of hamiltonian (2**N_pot)
+N_pot = 17
+N = 2**N_pot
 # Amount of periods to be simulated
 n_periods = 100
 # Simulation steps per period
@@ -75,6 +67,17 @@ M = int(np.sqrt(N))
 range_search = 1
 
 ## CALCULATED PARAMS
+# ------------------------------------------------------------------------------
+####  Defining a hamiltonian (own)
+
+N1 = N2 = int(np.sqrt(N))//2
+S = get_positions_graphene(N1, N2)
+if type_ham=='hbn':
+    Ham = create_hex_ham(S, N1, N2, t=-2.7, M=ham_params, a_l=0.25, out_format='ELL')
+else:
+    Ham = create_hex_ham(S, N1, N2, t=-2.7, M=0.0, out_format='ELL')
+
+dE = (Ham.bounds[1] - Ham.bounds[0])/2
 # Parameters of the laser
 w = E/jcl.hbar_fs 
 T = 2*np.pi/w    
@@ -86,22 +89,27 @@ broad = dE*np.pi/M
 t_vec_measures = np.linspace(0, n_periods*T, N_measures)
 
 # Print of parameters to check results
-print('PARAMETERS OF ANALYSIS')
-print()
+print('PARAMETERS OF CALCULATION')
+print(f'Type of hamiltonian is {type_ham}')
+print(f'Hamiltonian parameter is {ham_params}')
 print(f'Type of light is {modifier_id}')
 print(f'# of atoms: {N}')
+print(f'# of moments: {M}')
 print(f'Energy: {E} eV')
 print(f'Intensity param: {gamma}')
 print(f'Temperature: {Temp} K')
 print(f'Chem potential: {mu} eV')
+print(f'# of Random Vectors: {N_random_vector}')
 print(f'# of periods: {n_periods}')
 print(f'steps/period: {steps_per_T}')
 print(f'# measures/T: {meas_per_T}')
 
 
 # Names of file and info on graphs
-fig_title_info = f'$N={{{2**N_pot}}}$, $\\hbar\\omega={E}$ eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}'
+fig_title_info = f'$N={{{2**N_pot}}}$, $\\hbar\\omega={E}$ eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}\n'
 extra_text = f'Light: {modifier_id}\n$\\delta E={broad:.3f}$\n# Rand Vecs: {N_random_vector}\nMeasures/T={meas_per_T}\nSteps/T={steps_per_T}'
+
+#fig_title_info=f'Light: {modifier_id},$N={{{2**N_pot}}}$, $\\hbar\\omega={E}$ eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}\n$M={M}$, $R={N_random_vector}$, Meas/T={meas_per_T}, $St/T={steps_per_T}$'
 
 EF_list, n_E_list, dos_list, dosn_list = load_data(modifier_id, N_pot, E, Temp, mu, gamma, 
                         M, N_random_vector, n_periods, meas_per_T, steps_per_T, type_ham, ham_params, R=None)
@@ -117,10 +125,10 @@ min_e, max_e = -2.5*E, 2.5*E
 hw_lines_step = 0.5*E
 hw_hlines = [i for i in [hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
 hw_hlines += [i for i in [-hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
-
+# ------------------------------------------------------------------------------
+# Occupation (E)
 # Text box
 props = dict(boxstyle='round', facecolor='white', alpha=0.8)
-
 fig, ax = plt.subplots()
 for i in range(N_measures):
     ax.plot(EF_list[i,:], n_E_list[i,:], color=cmap(norm(t_vec_measures[i]/T)), label=f't={round(t_vec_measures[i]/T, 3)}T')
@@ -134,8 +142,8 @@ fig.suptitle(fig_title_info)
 ax.set_title('Occupation Number')
 ax.text(min_e + 0.5*E, 0.2, extra_text, bbox=props)
 
-
-# Density of states graph
+# ------------------------------------------------------------------------------
+# DOS (Energy)
 fig, ax = plt.subplots()
 for i in range(N_measures):
     ax.plot(EF_list[i,:], dos_list[i,:], color=cmap(norm(t_vec_measures[i])), label=f't={round(t_vec_measures[i]/T, 3)}T')
@@ -148,8 +156,8 @@ ax.vlines([0], 0, np.max(dos_list), color='grey', ls='--', alpha=0.8, zorder=1)
 fig.suptitle(fig_title_info)
 ax.set_title('Density of States')
 
-
-# Density of states * Occupation graph
+# ------------------------------------------------------------------------------
+# DOS*Occ (Energy)
 fig, ax = plt.subplots()
 for i in range(N_measures):
     ax.plot(EF_list[i,:], dosn_list[i,:], color=cmap(norm(t_vec_measures[i])), label=f't={round(t_vec_measures[i]/T, 3)}T')
@@ -162,13 +170,11 @@ ax.vlines([0], 0, np.max(dos_list), color='grey', ls='--', alpha=0.8, zorder=1)
 fig.suptitle(fig_title_info)
 ax.set_title('Density of States')
 
-
-# Extra graphs for the n for different times
-hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
+# ------------------------------------------------------------------------------
+# OCCUPATION (Time)
 color_list = ['olivedrab', 'red', 'orange', 'blue', 'darkviolet']
 
-occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T, range_search)
-# General figure to contain all important data
+occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(EF_list, dosn_list, hE_list, t_vec_measures, T, range_search)
 fig, ax = plt.subplots()
 reescale = np.max(occ_drop_list[3]) / np.max(occ_drop_list[4]) / 2
 ax.plot(np.array(t_vec_measures)/T, occ_drop_list[4]*reescale, c='darkviolet', 
@@ -182,7 +188,6 @@ ax.set_ylabel('$n(t)$')
 ax.set_title(fr'Occupation')
 fig.suptitle(fig_title_info)
 ax.legend()
-ax.set_xlim(0, 20)
 
 # ------------------------------------------------------------------------------
 # FREQUENCY ANALYSIS OF THE RESULTS

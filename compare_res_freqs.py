@@ -90,7 +90,6 @@ t_vec_measures = np.linspace(0, n_periods*T, N_measures)
 
 # Print of parameters to check results
 
-
 char_freq1 = np.zeros((len(gamma_list), len(hE_list)))
 char_freq2 = np.zeros((len(gamma_list), len(hE_list)))
 for (g, gamma) in enumerate(gamma_list):
@@ -98,7 +97,7 @@ for (g, gamma) in enumerate(gamma_list):
     if M == 0:
         M = int(np.sqrt(N))
     # ------------------------------------------------------------------------------
-    # First element01
+    # First element
     modifier_id = 'linear'
     # Names of file and info on graphs
     # Loading the info in the .npy files
@@ -107,6 +106,8 @@ for (g, gamma) in enumerate(gamma_list):
 
     # Readying identifier on graph
     label1 = f"linear"
+    color1 = 'red'
+    color_m1 = 'darkred'
     # ------------------------------------------------------------------------------
     # Second element
     modifier_id = 'circle'
@@ -115,6 +116,8 @@ for (g, gamma) in enumerate(gamma_list):
                         M, N_random_vector, n_periods, meas_per_T, steps_per_T, type_ham, ham_params, R=None)
 
     label2 = f"circle"
+    color2 = 'blue'
+    color_m2 = 'cyan'
     # ------------------------------------------------------------------------------
     # Third element
     """
@@ -136,18 +139,18 @@ for (g, gamma) in enumerate(gamma_list):
     # --------------------------------------------------------------------------
     # FREQUENCY ANALYSIS OF THE RESULTS
     # General figure
-    """
+    
     # --------------------------------------------------------------------------
     # OCCUPATION(time) 0.5HW
     # General figure to contain all important data
     fig, ax = plt.subplots()
-    ax.plot(np.array(t_vec_measures)/T, occ_drop_list1[3], c='blue', 
-            marker='.', ls='--', label=f"$E=0.5\\hbar\\omega$ eV")
-    ax.plot(np.array(t_vec_measures)/T, occ_drop_list2[3], c='red', 
-            marker='.', ls='--', label=f"$E=0.5\\hbar\\omega$ eV")
+    ax.plot(np.array(t_vec_measures)/T, occ_drop_list1[3], c=color1, 
+            marker='.', ls='--', label=f"{label1}")
+    ax.plot(np.array(t_vec_measures)/T, occ_drop_list2[3], c=color2, 
+            marker='.', ls='--', label=f"{label2}")
     ax.set_xlabel('Time (Periods)')
     ax.set_ylabel('$n(t)$')
-    ax.set_title(fr'Occupation')
+    ax.set_title(f'DOS*n(t) in E=$0.5\\hbar\\omega$')
     fig.suptitle(fig_title_info)
     ax.legend()
     
@@ -155,13 +158,13 @@ for (g, gamma) in enumerate(gamma_list):
     # OCCUPATION(time)  1.0HW
     # General figure to contain all important data
     fig, ax = plt.subplots()
-    ax.plot(np.array(t_vec_measures)/T, occ_drop_list1[4], c='darkviolet', 
-            marker='.', ls='--', label=f"$E=1\\hbar\\omega$")
-    ax.plot(np.array(t_vec_measures)/T, occ_drop_list2[4], c='darkviolet', 
-            marker='.', ls='--', label=f"$E=1\\hbar\\omega$")
+    ax.plot(np.array(t_vec_measures)/T, occ_drop_list1[4], c=color1, 
+            marker='.', ls='--', label=f"{label1}")
+    ax.plot(np.array(t_vec_measures)/T, occ_drop_list2[4], c=color2, 
+            marker='.', ls='--', label=f"{label2}")
     ax.set_xlabel('Time (Periods)')
     ax.set_ylabel('$n(t)$')
-    ax.set_title(fr'Occupation')
+    ax.set_title(f'DOS*n(t) in E=$1.0\\hbar\\omega$')
     fig.suptitle(fig_title_info)
     ax.legend()
 
@@ -169,129 +172,77 @@ for (g, gamma) in enumerate(gamma_list):
     # OCCUPATION(time)  0.0HW
     # General figure to contain all important data
     fig, ax = plt.subplots()
-    ax.plot(np.array(t_vec_measures)/T, occ_drop_list1[2], c='orange', 
-            marker='.', ls='--', label=f"$E=0.0\\hbar\\omega$ eV")
-    ax.plot(np.array(t_vec_measures)/T, occ_drop_list2[2], c='orange', 
-            marker='.', ls='--', label=f"$E=0.0\\hbar\\omega$ eV")
+    ax.plot(np.array(t_vec_measures)/T, occ_drop_list1[2], c=color1, 
+            marker='.', ls='--', label=f"{label1}")
+    ax.plot(np.array(t_vec_measures)/T, occ_drop_list2[2], c=color2, 
+            marker='.', ls='--', label=f"{label2}")
     ax.set_xlabel('Time (Periods)')
     ax.set_ylabel('$n(t)$')
-    ax.set_title(fr'Occupation')
+    ax.set_title(f'DOS*n(t) in E=$0.0\\hbar\\omega$')
     fig.suptitle(fig_title_info)
     ax.legend()
-    """
-    """
+    
+    
     # --------------------------------------------------------------------------
     # FREQUENCY ANALYSIS OF THE RESULTS
     # General figure 0.5HW
-    max_freq = min([3, freq1[-1]*T/(2*np.pi), freq2[-1]*T/(2*np.pi)])
-    props = dict(boxstyle='round', facecolor='white', edgecolor='grey', alpha=0.8)
+    if gamma != 0:
+        props = dict(boxstyle='round', facecolor='white', edgecolor='grey', alpha=0.8)
+        omega = np.sqrt(3)*2.7*gamma*np.pi/jcl.hbar_fs
+        max_freq = min(4*w, np.max(np.array([freq1, freq2])))
 
-    fig, ax = plt.subplots()
-    ax.plot(freq1*T/(2*np.pi), fourier_occ1[3], c='blue', marker='.', ls='--', 
-            label=f'$E = 0.5\\hbar\\omega$')
-    ax.scatter(freq1[max_freq_ind1[3]]*T/(2*np.pi), fourier_occ1[3, max_freq_ind1[3]], color='cyan',
-            marker='*', zorder=2)
-    
-    ax.plot(freq1*T/(2*np.pi), fourier_occ2[3], c='red', marker='.', ls='--', 
-            label=f'$E = 0.5\\hbar\\omega$')
-    # Markers of max frequencies
-    ax.scatter(freq2[max_freq_ind2[3]]*T/(2*np.pi), fourier_occ2[3, max_freq_ind2[3]], color='darkred',
-            marker='*', zorder=2)
-    ax.vlines([range_search], 0, np.max(fourier_occ1), ls='-.', color='gray')
-    ax.set_xlim(0, max_freq)
-    wc_text = f'$\\omega_c = {char_freq1[g, 3]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq2[g, 3]:.6f}$ fs$^{{-1}}$'
-    ax.text(0.72, 0.98, wc_text, transform=ax.transAxes,
-            verticalalignment='top', bbox=props)
-    ax.legend(loc=(0.47, 0.7815), labelspacing=0.8, edgecolor='grey')
-    ax.set_xlabel('Normal Frequency (period$^{-1}$)')
-    ax.set_ylabel('Amplitude')
-    ax.set_title('FFT')
-    fig.suptitle(fig_title_info)
-    """
-    """THESE DONT WORK YET
-    
-    # General figure 1.0HW
-    max_freq = min([3, freq1[-1]*T/(2*np.pi), freq2[-1]*T/(2*np.pi)])
-    props = dict(boxstyle='round', facecolor='white', edgecolor='grey', alpha=0.8)
+        fig, ax = plt.subplots()
+        ax.plot(freq1/omega, fourier_occ1[3], c=color1, marker='.', ls='--', 
+                label=f'{label1}')
+        ax.scatter(freq1[max_freq_ind1[3]]/omega, fourier_occ1[3, max_freq_ind1[3]], 
+                   color=color_m1, marker='*', zorder=2)
+        
+        ax.plot(freq2/omega, fourier_occ2[3], c=color2, marker='.', ls='--', 
+                label=f'{label2}')
+        # Markers of max frequencies
+        ax.scatter(freq2[max_freq_ind2[3]]/omega, fourier_occ2[3, max_freq_ind2[3]], 
+                   color=color_m2, marker='*', zorder=2)
+        ax.vlines(1, 0, np.max(fourier_occ1), ls='-', color='gray', zorder=1)
+        ax.set_xlim(0, max_freq/omega)
+        ax.vlines(np.arange(w, 4*w, w)/omega, 0, np.max(fourier_occ1), 
+                ls=(0, (1, 2)), color='darkslategrey')
+        ax.set_xlabel('Angular freq. $/ \\Omega$')
+        ax.set_ylabel('Amplitude')
+        ax.set_title('FFT on $E=0.5\\hbar\\omega$')
+        ax.text(w/omega, np.max(fourier_occ1)*6/8, '$\\omega = \\omega_L$', 
+                verticalalignment='center', horizontalalignment='center',
+                bbox=props)
+        ax.legend()
+        fig.suptitle(fig_title_info)
 
-    fig, ax = plt.subplots()
-    ax.plot(freq1*T/(2*np.pi), fourier_occ1[3], c='blue', marker='.', ls='--', 
-            label=f'$E = 0.5\\hbar\\omega$')
-    # Markers of max frequencies2)
-    ax.scatter(freq1[max_freq_ind1[3]]*T/(2*np.pi), fourier_occ1[3, max_freq_ind1[3]], color='cyan',
-            marker='*', zorder=2)
-    ax.plot(freq2*T/(2*np.pi), fourier_occ2[3], c='blue', marker='.', ls='--', 
-            label=f'$E = 0.5\\hbar\\omega$')
-    # Markers of max frequencies
-    ax.scatter(freq2[max_freq_ind2[3]]*T/(2*np.pi), fourier_occ2[3, max_freq_ind2[3]], color='cyan',
-            marker='*', zorder=2)
-    ax.vlines([range_search], 0, np.max(fourier_occ1), ls='-.', color='gray')
-    ax.set_xlim(0, max_freq)
-    wc_text = f'$\\omega_c = {char_freq1[g, 3]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq2[g, 3]:.6f}$ fs$^{{-1}}$'
-    ax.text(0.72, 0.98, wc_text, transform=ax.transAxes,
-            verticalalignment='top', bbox=props)
-    ax.legend(loc=(0.47, 0.7815), labelspacing=0.8, edgecolor='grey')
-    ax.set_xlabel('Normal Frequency (period$^{-1}$)')
-    ax.set_ylabel('Amplitude')
-    ax.set_title('FFT')
-    fig.suptitle(fig_title_info)
-
-    # General figure 0.0HW
-    max_freq = min([3, freq1[-1]*T/(2*np.pi), freq2[-1]*T/(2*np.pi)])
-    props = dict(boxstyle='round', facecolor='white', edgecolor='grey', alpha=0.8)
-
-    fig, ax = plt.subplots()
-    ax.plot(freq1*T/(2*np.pi), fourier_occ1[3], c='blue', marker='.', ls='--', 
-            label=f'$E = 0.5\\hbar\\omega$')
-    # Markers of max frequencies2)
-    ax.scatter(freq1[max_freq_ind1[3]]*T/(2*np.pi), fourier_occ1[3, max_freq_ind1[3]], color='cyan',
-            marker='*', zorder=2)
-    ax.plot(freq2*T/(2*np.pi), fourier_occ2[3], c='blue', marker='.', ls='--', 
-            label=f'$E = 0.5\\hbar\\omega$')
-    # Markers of max frequencies
-    ax.scatter(freq2[max_freq_ind2[3]]*T/(2*np.pi), fourier_occ2[3, max_freq_ind2[3]], color='cyan',
-            marker='*', zorder=2)
-    ax.vlines([range_search], 0, np.max(fourier_occ1), ls='-.', color='gray')
-    ax.set_xlim(0, max_freq)
-    wc_text = f'$\\omega_c = {char_freq1[g, 3]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq2[g, 3]:.6f}$ fs$^{{-1}}$'
-    ax.text(0.72, 0.98, wc_text, transform=ax.transAxes,
-            verticalalignment='top', bbox=props)
-    ax.legend(loc=(0.47, 0.7815), labelspacing=0.8, edgecolor='grey')
-    ax.set_xlabel('Normal Frequency (period$^{-1}$)')
-    ax.set_ylabel('Amplitude')
-    ax.set_title('FFT')
-    fig.suptitle(fig_title_info)
-    """
-
-    # --------------------------------------------------------------------------
-    # FREQUENCY ANALYSIS OF THE RESULTS
-    # General figure 0.5HW
-    omega = np.sqrt(3)*2.7*gamma*np.pi/jcl.hbar_fs
-    fig, ax = plt.subplots()
-    ax.plot(freq1/omega, fourier_occ1[3], c='blue', marker='.', ls='--', 
-            label=f'{label1}')
-    ax.scatter(freq1[max_freq_ind1[3]]/omega, fourier_occ1[3, max_freq_ind1[3]], color='cyan',
-            marker='*', zorder=2)
-    
-    ax.plot(freq2/omega, fourier_occ2[3], c='red', marker='.', ls='--', 
-            label=f'{label2}')
-    # Markers of max frequencies
-    ax.scatter(freq2[max_freq_ind2[3]]/omega, fourier_occ2[3, max_freq_ind2[3]], color='darkred',
-            marker='*', zorder=2)
-    ax.vlines(1, 0, np.max(fourier_occ1), ls='-.', color='gray')
-    ax.set_xlabel('Angular freq. $/ \\Omega$')
-    ax.set_ylabel('Amplitude')
-    ax.set_title('FFT on $E=0.5\\hbar\\omega$')
-    ax.legend()
-    fig.suptitle(fig_title_info)
 # Final plot of the gammas
 fig, ax = plt.subplots()
 #ax.plot(gamma_list, char_freq[:,2], ls='--', c=color_list[2], marker='.',
 #        label=f'$E = \\mu$ eV')
-ax.plot(gamma_list, char_freq1[:,3], ls='--', c=color_list[3], marker='.',
+ax.plot(gamma_list, char_freq1[:,3], ls='--', c=color1, marker='.',
         label=f'{label1}')
-ax.plot(gamma_list, char_freq2[:,3], ls='--', c=color_list[4], marker='.',
+ax.plot(gamma_list, char_freq2[:,3], ls='--', c=color2, marker='.',
         label=f'{label2}')
+ax.set_xlabel(f'Intensity $\\Gamma$')
+ax.set_ylabel('Angular frequency (las. period$^{-1}$)')
+ax.set_title(f'$\\omega_c$ in $E= 0.5\\hbar\\omega$')
+ax.legend()
+ax.set_xticks(gamma_list)
+fig.suptitle(f'$N={{{2**N_pot}}}$, $\\hbar\\omega$={E} eV, Temp={Temp} K, $\\mu$={mu} eV')
+
+# Comparison for the presentation
+char_freqs_og = np.load('Out/char_freqs.npy')[:len(gamma_list)]
+omega_list = np.sqrt(3)*2.7*gamma_list*np.pi/jcl.hbar_fs
+fig, ax = plt.subplots()
+ax.plot(gamma_list, char_freq1[:,3], ls='--', c=color1, marker='.',
+        label=f'hBN {label1}')
+ax.plot(gamma_list, char_freq2[:,3], ls='--', c=color2, marker='.',
+        label=f'hBN {label2}')
+ax.plot(gamma_list, char_freqs_og, ls='--', c='green', marker='.',
+        label=f'graphene circle')
+ax.plot(gamma_list, lin_graphene, ls='--', c='magenta', marker='.',
+        label=f'graphene linear')
+ax.plot(gamma_list, omega_list, c='gray', label='$\\Omega(\\Gamma)$')
 ax.set_xlabel(f'Intensity $\\Gamma$')
 ax.set_ylabel('Angular frequency (las. period$^{-1}$)')
 ax.set_title(f'$\\omega_c$ in $E= 0.5\\hbar\\omega$')

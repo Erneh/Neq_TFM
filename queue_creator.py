@@ -8,12 +8,12 @@ import subprocess
 from core import check_if_calculated
 
 # Name of the file
-file_name = 'hbn_def_calcs'
+file_name = 'lin_def_calcs'
 
 
 # Type of Light
-modifier_id_list = ['circle', 'linear']
-ham_type_list = ['hbn']
+modifier_id_list = ['linear']
+ham_type_list = ['basic']
 ham_param_list = [0.50]
 # Power to which the number of atoms is 'powered'
 N_pot_list = [19]
@@ -38,7 +38,7 @@ steps_per_T_list = [1000]
 # Force the calcs to be redone even if found
 # 0: Recalculations are not forced
 # 1: Recalculations ARE forced
-force_recalc = 0
+force_recalc = 1
 
 file = open(f'Calcs_files/{file_name}.txt', 'w')
 for N_random_vector in N_random_vector_list:
