@@ -93,7 +93,7 @@ def check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vect
 
 
 def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
-                        n_periods, meas_per_T, steps_per_T, type_ham, ham_params, R=None):
+                        n_periods, meas_per_T, steps_per_T, type_ham, ham_params, R=None, out_file_loc=''):
     '''
     Script to load the data of an already performed calculation
     '''
@@ -109,10 +109,10 @@ def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
     # Loading the info in the .npy files available at the moment
     if N_random_vector == 1:
         print(f'1/1 calculations finished! Loading results...')
-        EF_list = np.load(f'Out/{folder_name}/E.npy')
-        n_E_list = np.load(f'Out/{folder_name}/n_E.npy')
-        dos_list = np.load(f'Out/{folder_name}/dos_E.npy')
-        dosn_list = np.load(f'Out/{folder_name}/dosn_E.npy')
+        EF_list = np.load(f'{out_file_loc}Out/{folder_name}/E.npy')
+        n_E_list = np.load(f'{out_file_loc}Out/{folder_name}/n_E.npy')
+        dos_list = np.load(f'{out_file_loc}Out/{folder_name}/dos_E.npy')
+        dosn_list = np.load(f'{out_file_loc}Out/{folder_name}/dosn_E.npy')
     else:
         # Deciding the amount of random vectors being used in the sim
         R_total = len(os.listdir(f'Out/{folder_name}/Ene_R'))
