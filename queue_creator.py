@@ -18,7 +18,7 @@ ham_param_list = [0.50]
 # Power to which the number of atoms is 'powered'
 N_pot_list = [19]
 # Energy in pulse                        
-E_list = [1.1]     
+E_list = [1.0]     
 # Temperature                       
 Temp_list = [1e-9]
 # Chemical potential
