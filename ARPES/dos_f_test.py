@@ -9,7 +9,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = str(N_cores)    # export NUMEXPR_NUM_THREADS
 
 import numpy as np
 import matplotlib.pyplot as plt
-from tqdm import tqdm
+
 
 import jclsquant as jcl
 
@@ -18,14 +18,15 @@ from lat_creation import get_positions_graphene
 from ARPES.kpath_stuff import rec_lattice, plot_1BZ, path_chart
 from core import random_vector
 
-mass = 0.5
+mass = 0.0
 t = -2.7
 
 a_l = 0.24595
-a1 = a_l*np.array([3**0.5/2, 1/2])
-a2 = a_l*np.array([3**0.5/2, -1/2])
+a1 = a_l*np.array([1/2, 3**0.5/2])
+a2 = a_l*np.array([-1/2, 3**0.5/2])
 r1 = np.array([0.0, 0.0])
 r2 = np.array([a_l/np.sqrt(3), 0.0])
+Rat = np.array([r1, r2])
 
 def H_og(k):
     """
@@ -43,20 +44,24 @@ def H_og(k):
 
 # ------------------------------------------------------------------------------
 # CREATION OF THE HAMILTONIAN
-N_pot = 16
+N_pot = 18
+ham_type = 'jcl'
 N = 2**N_pot
-N1 = N2 = int(np.sqrt(N))//2
-
-
-S = get_positions_graphene(N1, N2)
-
-Ham = create_hex_ham(S, N1, N2, t=t, M=mass, out_format='ELL')
-positions = jcl.lattice_hexagonal(N)
-Ham = jcl.H_graphene(positions, -2.7 + 0j, 0.5 + 0j,  periodic=True, type_H='ELL')
-M = int(N**0.5)
+if ham_type == 'mine':
+    N1 = N2 = int(np.sqrt(N))//2
+    S = get_positions_graphene(N1, N2)
+    Ham = create_hex_ham(S, N1, N2, t=t, M=mass, out_format='ELL')
+elif ham_type == 'jcl':
+    S = jcl.lattice_hexagonal(N)
+    Ham = jcl.H_graphene(S, -2.7 + 0j, mass + 0j,  periodic=True, type_H='ELL')
+    M = int(N**0.5)
 #M = 1000
 # Selecting the indices accordingly
-index_list = [np.arange(0, N, 2), np.arange(1, N, 2)]
+ar1 = np.array([1, 0, 1, 0], dtype=bool)
+ind1 = np.kron(np.ones(N//4, dtype=bool), ar1)
+ind2 = np.kron(np.ones(N//4, dtype=bool), np.bool(1-ar1))
+total = np.arange(N)
+index_list = np.array([total[ind1], total[ind2]])
 
 # ------------------------------------------------------------------------------
 # CREATION OF A K-PATH (in the original cell, I suppose?)
@@ -65,12 +70,12 @@ recLat, BZ_points = rec_lattice(rLat)
 K = BZ_points[4]
 Kp = BZ_points[5]
 M_point = (K + Kp)/2
-#plot_1BZ(recLat, BZ_points[[5],:])
 Gamma = np.array([0.0, 0.0])
 nk = 100
 kpoints = [Gamma, K, M_point, Kp, Gamma]
 kpath, kind, kdist = path_chart(kpoints, nk, recLat)
 klabs = ['$\\Gamma$', '$K$', '$M$', "$K'$", '$\\Gamma$']
+
 # %% Performing the actual calculations
 rnd_vec = random_vector(N, 1)[:,0]
 DOS_f = jcl.kpm_dos_f(Ham, M, kpath.T, S, index_list, rnd_vec)
@@ -81,9 +86,8 @@ autV, autE = np.linalg.eigh(H_og(kpath))
 
 EF_list = DOS_f[0,:,0]
 fig, ax = plt.subplots()
-ax.contourf(kdist, EF_list, np.log(DOS_f[:,:,1].T))
+contour = ax.contourf(kdist, EF_list, DOS_f[:,:,1].T, 400, vmin=DOS_f[:,:,1].min(), vmax=DOS_f[:,:,1].max()/100)
+cbar = plt.colorbar(contour)
 ax.set_xticks(kdist[kind], labels=klabs)
 ax.plot(kdist[:,None], autV, c='pink')
 
-
-# %%
