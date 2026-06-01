@@ -24,7 +24,7 @@ Temp_list = [1e-9]
 # Chemical potential
 mu_list = [0.01]
 # Intensity param     (no units)
-gamma_list = [0.020]
+gamma_list = [0.025]
 # Amount of random vectors used in calculation
 N_random_vector_list = [1]
 M_list = [0]

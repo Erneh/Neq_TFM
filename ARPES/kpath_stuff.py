@@ -193,41 +193,30 @@ def plot_1BZ(recLat, BZ_points):
     ax.set_ylabel('$k_y$')
     return fig, ax
 
+def get_path(path_type, nk):
+    a1 = a_l*np.array([1/2, 3**0.5/2])
+    a2 = a_l*np.array([-1/2, 3**0.5/2])
+    r1 = np.array([0.0, 0.0])
+    r2 = np.array([a_l/np.sqrt(3), 0.0])
+    Rat = np.array([r1, r2])
 
-def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
-              path_type, nk, n_periods, meas_per_T, steps_per_T, type_ham, mass):
-    if type_ham == 'basic':
-        folder_name = f'{modifier_id}/{path_type}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}_nk={nk}'
+    rLat = np.array([a1, a2])
+    recLat, BZ_points = rec_lattice(rLat)
+    K = BZ_points[4]
+    Kp = BZ_points[5]
+    M_point = (K + Kp)/2
+    Gamma = np.array([0.0, 0.0])
+    if path_type == 'full':
+        kpoints = [Gamma, K, M_point, Kp, Gamma]
+        kpath, kind, kdist = path_chart(kpoints, nk, recLat)
+        klabs = ['$\\Gamma$', '$K$', '$M$', "$K'$", '$\\Gamma$']
+    elif path_type == 'part':
+        kpoints = [Gamma, K, M_point, Gamma]
+        kpath, kind, kdist = path_chart(kpoints, nk, recLat)
+        klabs = ['$\\Gamma$', '$K$', '$M$', '$\\Gamma$']
+    elif path_type == 'vall':
+        kpoints = [Gamma, K, Gamma]
+        kpath, kind, kdist = path_chart(kpoints, nk, recLat)
+        klabs = ['$\\Gamma$', '$K$', '$\\Gamma$']
+    return rLat, Rat, kpath, kind, kdist, klabs
 
-    elif type_ham == 'jcl':
-        folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}_nk={nk}'
-
-    elif type_ham == 'hbn':
-        if mass is None:
-            mass = 0.5
-        folder_name = f'{modifier_id}{type_ham}/{path_type}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}_m={mass:.2f}/N={N_pot}_M={M}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}_nk={nk}'
-    save_path = f'ARPES/Out/{folder_name}'
-    try:
-        cR = len(os.listdir(f'{save_path}/dosn_f'))
-        
-        if N_random_vector > cR:
-            print(f'There are {cR} calculations ready! R not reached, using {cR}/{cR}')
-            lR = cR
-        else:
-            print(f'There are {cR} calculations ready! Enough for R, using {N_random_vector}/{cR}')
-            lR = N_random_vector
-        EF_list = np.load(f'{save_path}/E.npy')
-        t_vec_meas = np.load(f'{save_path}/t_meas.npy')
-        n_f = np.load(f'{save_path}/n_f/1.npy')
-        dosn_f = np.load(f'{save_path}/dosn_f/1.npy')
-        for r in range(2, 1+lR):
-            n_f += np.load(f'{save_path}/n_f/{r}.npy')
-            dosn_f += np.load(f'{save_path}/dosn_f/{r}.npy')
-        return EF_list, t_vec_meas, n_f, dosn_f
-    
-    except FileNotFoundError:
-        cR = 0
-        print('There is no data to load here! Run the calculations or check if a parameter has been misspelled')
-        print(f'python3 ARPES/neq_f.py {modifier_id} {N_pot} {E} {Temp} {mu:.2f} {gamma:.3f} {M} {N_random_vector} {path_type} {nk} {n_periods} {meas_per_T} {steps_per_T} {type_ham} {mass:.2f}')
-        return 1
-    
