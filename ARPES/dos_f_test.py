@@ -18,7 +18,7 @@ from lat_creation import get_positions_graphene
 from ARPES.kpath_stuff import rec_lattice, plot_1BZ, path_chart
 from core import random_vector
 
-mass = 0.0
+mass = 0.5
 t = -2.7
 
 a_l = 0.24595
@@ -47,7 +47,7 @@ def H_og(k):
 N_pot = 18
 ham_type = 'jcl'
 N = 2**N_pot
-if ham_type == 'mine':
+if ham_type == 'basic':
     N1 = N2 = int(np.sqrt(N))//2
     S = get_positions_graphene(N1, N2)
     Ham = create_hex_ham(S, N1, N2, t=t, M=mass, out_format='ELL')
@@ -84,10 +84,18 @@ DOS_f = jcl.kpm_dos_f(Ham, M, kpath.T, S, index_list, rnd_vec)
 # %%
 autV, autE = np.linalg.eigh(H_og(kpath))
 
+col_min = DOS_f[:,:,1].T.min()
+col_max = DOS_f[:,:,1].T.max()/64
+levels = 400
+col_levels = np.linspace(col_min, col_max, levels)
+
+fig_title = f'{ham_type},N={N}, $m={mass}$, $M={M}$'
 EF_list = DOS_f[0,:,0]
 fig, ax = plt.subplots()
-contour = ax.contourf(kdist, EF_list, DOS_f[:,:,1].T, 400, vmin=DOS_f[:,:,1].min(), vmax=DOS_f[:,:,1].max()/100)
+contour = ax.contourf(kdist, EF_list, DOS_f[:,:,1].T, col_levels, extend='max')
 cbar = plt.colorbar(contour)
 ax.set_xticks(kdist[kind], labels=klabs)
-ax.plot(kdist[:,None], autV, c='pink')
+ax.plot(kdist[:,None], autV, c='gray', ls='--')
+fig.suptitle(fig_title)
 
+# %%

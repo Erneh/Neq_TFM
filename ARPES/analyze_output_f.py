@@ -2,28 +2,28 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from ARPES.kpath_stuff import get_path
-from ARPES.auxiliar_functions import plot_pulse, load_data
+from ARPES.auxiliar_functions import plot_pulse, load_data, string_to_parameters
 import jclsquant as jcl
 
 # ------------------------------------------------------------------------------
-###### PARAMETERS OF THE SYSTEM
+###### PARAMETERS OF THE  (manual)
 ### PHYSICAL
 # Hamiltonian construction
-mass = 0.0
+mass = 0.50
 t = -2.7
 a_l = 0.24595
-type_ham = 'basic'
+type_ham = 'jclhbn'
 # kpath n
 path_type = 'full'
 nk = 100
 # Type of light               
-modifier_id = 'linear_packed'
+modifier_id = 'circle'
 # Energy in pulse                        
 E = 1.0
 # Temperature                       
 Temp = 1e-9
 # Chemical potential
-mu = 0.20
+mu = 0.50
 # Intensity param     (no units)
 gamma = 0.020
 
@@ -32,7 +32,7 @@ gamma = 0.020
 N_pot = 16
 N = 2**N_pot
 # Amount of periods to be simulated
-n_periods = 1
+n_periods = 5
 # Simulation steps per period
 steps_per_T = 1000
 # Amount of measures per period
@@ -42,6 +42,10 @@ N_measures = meas_per_T*n_periods
 N_random_vector = 1
 # Momenta
 M = int(np.sqrt(N))
+
+str_params = 'linear 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 jclhbn 0.50'
+modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, path_type, nk, n_periods, meas_per_T, steps_per_T, type_ham, mass = string_to_parameters(str_params)
+fig_title = f'{modifier_id}, {type_ham}, $N={N}$, $\\mu={mu}$ eV, $\\Gamma={gamma}$, $M={M}$'
 
 print('PARAMETERS OF CALCULATION')
 print(f'Type of hamiltonian is {type_ham}')
@@ -93,6 +97,7 @@ T = 2*np.pi/w
 t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)
 dosn_f_mean = np.mean(dosn_f, axis=0)
 #%% Graphing stuff 
+
 # Seeing light pulse
 if modifier_id == 'circle':
     # Polarization (right or left)
@@ -119,6 +124,12 @@ contour = ax.contourf(kdist, EF_list, dosn_f_mean.T, col_levels, extend='max')
 cbar = plt.colorbar(contour)
 ax.set_xticks(kdist[kind], labels=klabs)
 ax.set_ylabel('Energy')
+fig.suptitle(fig_title)
 #ax.plot(kdist[:,None], autV, c='pink')
+
+# %% Postprocessing to obtain the actual bands instead of just the weird intensity part
+thresh_dosn_f = 1e6
+
+band_out = dosn_f_mean > thresh_dosn_f
 
 # %%

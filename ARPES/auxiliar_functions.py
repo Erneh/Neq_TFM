@@ -71,11 +71,12 @@ def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
 
     elif type_ham == 'jcl':
         folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}_nk={nk}'
-
-    elif type_ham == 'hbn':
+    
+    elif type_ham in ['hbn', 'jclhbn']:
         if mass is None:
             mass = 0.5
         folder_name = f'{modifier_id}{type_ham}/{path_type}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}_m={mass:.2f}/N={N_pot}_M={M}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}_nk={nk}'
+   
     save_path = f'ARPES/Out/{folder_name}'
     try:
         cR = len(os.listdir(f'{save_path}/dosn_f'))
@@ -101,3 +102,38 @@ def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
         print(f'python3 ARPES/neq_f.py {modifier_id} {N_pot} {E} {Temp} {mu:.2f} {gamma:.3f} {M} {N_random_vector} {path_type} {nk} {n_periods} {meas_per_T} {steps_per_T} {type_ham} {mass:.2f}')
         return 1
     
+
+
+def string_to_parameters(str_parameters):
+    params = str_parameters.split(' ')
+    # Type of Light
+    modifier_id = params[0]
+    # Power to which the number of atoms is 'powered'
+    N_pot = int(params[1])
+    # Energy in pulse                        
+    E = float(params[2])     
+    # Temperature                       
+    Temp = float(params[3])
+    # Chemical potential
+    mu = float(params[4])
+    # Intensity param     (no units)
+    gamma = float(params[5])
+    # Amount of moments used to calculate
+    M = int(params[6])
+    # Amount of random vectors used in calculation
+    N_random_vector = int(params[7])
+    # Type of path for the system to take
+    path_type = params[8]
+    # Number of k-points in the first segment
+    nk = int(params[9])
+    # # periods included in sims
+    n_periods = int(params[10])
+    # Amount of measures per period
+    meas_per_T = int(params[11])
+    # steps/T
+    steps_per_T = int(params[12])
+    # Type of hamiltonian used in the calculations
+    type_ham = params[13]
+    # Parameter of the given hamiltonian
+    mass = float(params[14])
+    return modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, path_type, nk, n_periods, meas_per_T, steps_per_T, type_ham, mass

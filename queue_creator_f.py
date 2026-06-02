@@ -64,7 +64,7 @@ for N_random_vector in N_random_vector_list:
                                                             file.write(f'{modifier_id} {N_pot} {E} {Temp} {mu:.2f} {gamma:.3f} {M} {N_random_vector} {path_type} {nk} {n_periods} {meas_per_T} {steps_per_T} {ham_type} {mass:.2f}\n')
 file.close()
 
-
+file_name = 'test'
 file = open(f'Calcs_files/{file_name}.txt', 'r')
 n_lines = sum([1 for line in file])
 file.close()
@@ -73,6 +73,6 @@ print(f'There are {n_lines} calculations queued!')
 ### After checking the file, this is to launch the actual calculations!
 
 
-command = f'cat Calcs_files/{file_name}.txt | xargs -L 1 -P 6 ./launcher_f.sh'
-print('screen -S mass_neq')
+command = f"grep -v '^#'  Calcs_files/{file_name}.txt | xargs -L 1 -P 6 ./launcher_f.sh"
+print('screen -S mass_arpes')
 print(command)

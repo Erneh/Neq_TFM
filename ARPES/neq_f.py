@@ -106,9 +106,16 @@ def neq_sim_f(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
         folder_name = f'{modifier_id}{type_ham}/{path_type}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}_nk={nk}'
 
     elif type_ham == 'jcl':
-        positions = jcl.lattice_hexagonal(N)
-        Ham = jcl.H_graphene(positions, -2.7 + 0j, periodic=True, type_H='ELL')
-        folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}_nk={nk}'
+        S = jcl.lattice_hexagonal(N)
+        Ham = jcl.H_graphene(S, -2.7 + 0j, periodic=True, type_H='ELL')
+        folder_name = f'{modifier_id}{type_ham}/{path_type}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}_nk={nk}'
+
+    elif type_ham == 'jclhbn':
+        if mass is None:
+            mass = 0.5
+        S = jcl.lattice_hexagonal(N)
+        Ham = jcl.H_graphene(S, -2.7 + 0j, mass + 0j , periodic=True, type_H='ELL')
+        folder_name = f'{modifier_id}{type_ham}/{path_type}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}_m={mass:.2f}/N={N_pot}_M={M}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}_nk={nk}'
 
     elif type_ham == 'hbn':
         if mass is None:
@@ -116,7 +123,7 @@ def neq_sim_f(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
 
         N1 = N2 = int(np.sqrt(N))//2
         S = get_positions_graphene(N1, N2, a_l = a_l)
-        Ham = create_hex_ham(S, N1, N2, t=-2.7, M=mass, a_l=0.25, out_format='ELL')
+        Ham = create_hex_ham(S, N1, N2, t=-2.7, M=mass, a_l=a_l, out_format='ELL')
         folder_name = f'{modifier_id}{type_ham}/{path_type}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}_m={mass:.2f}/N={N_pot}_M={M}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}_nk={nk}'
 
     

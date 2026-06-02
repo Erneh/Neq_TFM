@@ -36,7 +36,7 @@ n_periods = 1
 # Simulation steps per period
 steps_per_T = 1000
 # Amount of measures per period
-meas_per_T = 10
+meas_per_T = 40
 N_measures = meas_per_T*n_periods
 # Amount of random vectors used in calculation
 N_random_vector = 1
@@ -83,7 +83,7 @@ def H_og(k):
 # DATASET 1
 # Things different from the general parameters
 modifier_id = 'linear_packed'
-
+mu = 0.00
 
 label1 = 'linear_packed'
 # Loading data
@@ -94,7 +94,8 @@ EF_list1, t_vec_meas1, n_f1, dosn_f1 = load_data(modifier_id, N_pot, E, Temp, mu
 # ------------------------------------------------------------------------------
 # DATASET 2
 # Things different from the general parameters
-modifier_id = 'linear'
+modifier_id = 'linear_packed'
+mu = 5.00
 
 # Loading data
 EF_list2, t_vec_meas2, n_f2, dosn_f2 = load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
@@ -112,7 +113,7 @@ t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)
 
 dosn_f_mean1 = np.mean(dosn_f1, axis=0)
 dosn_f_mean2 = np.mean(dosn_f2, axis=0)
-#%% Graphing stuff 
+"""
 # Seeing light pulse
 if modifier_id == 'circle':
     # Polarization (right or left)
@@ -127,7 +128,7 @@ elif modifier_id == 'linear_packed':
     modifier_stuff = (modifier_id, w, Tp)
 
 #fig, ax = plot_pulse(modifier_stuff, t_vec, t_vec_meas1)
-
+"""
 
 #%%
 # Readying reference lines

@@ -29,9 +29,9 @@ from datetime import timedelta
 # Type of Light
 modifier_id = 'circle'
 # Power to which the number of atoms is 'powered'
-N_pot = 19
-#M = int(np.sqrt(2**N_pot))
-M = 362
+N_pot = 16
+M = int(np.sqrt(2**N_pot))
+#M = 362
 # Energy in pulse                        
 E = 1.0
 # Temperature                       
@@ -46,14 +46,14 @@ N_random_vector = 1
 # # periods included in sims
 n_periods = 20
 # Amount of measures per period
-meas_per_T = 4
+meas_per_T = 8
 # steps/T
 steps_per_T = 1000
 # Force recalculation
-force_recalc = False
+force_recalc = True
 show_figs = True
 
 
-neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
+EF_list, n_list, ndos_list, dos_list = neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
             n_periods, meas_per_T, steps_per_T, force_recalc, show_figs)
 

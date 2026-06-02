@@ -19,6 +19,9 @@ if [ $HAMTYPE = "basic" ]; then
     LOG_LOC="ARPES/Out/${MODIFIER_ID}${HAMTYPE}/${PATH_TYPE}/G=${GAMMA}_E=${E}_Temp=${TEMP}_mu=${MU}/N=${N_POT}_M=${M}_nT=${NT}_measT=${NMEAST}_stT=${STPERT}_nk=${NK}/logs"
 elif [ $HAMTYPE = "hbn" ]; then
     LOG_LOC="ARPES/Out/${MODIFIER_ID}${HAMTYPE}/${PATH_TYPE}/G=${GAMMA}_E=${E}_Temp=${TEMP}_mu=${MU}_m=${MASS}/N=${N_POT}_M=${M}_nT=${NT}_measT=${NMEAST}_stT=${STPERT}_nk=${NK}/logs"  
+elif [ $HAMTYPE = "jclhbn" ]; then
+    LOG_LOC="ARPES/Out/${MODIFIER_ID}${HAMTYPE}/${PATH_TYPE}/G=${GAMMA}_E=${E}_Temp=${TEMP}_mu=${MU}_m=${MASS}/N=${N_POT}_M=${M}_nT=${NT}_measT=${NMEAST}_stT=${STPERT}_nk=${NK}/logs"  
+
 else
     LOG_LOC="ARPES/Out/${MODIFIER_ID}${HAMTYPE}/${PATH_TYPE}/G=${GAMMA}_E=${E}_Temp=${TEMP}_mu=${MU}/N=${N_POT}_M=${M}_nT=${NT}_measT=${NMEAST}_stT=${STPERT}_nk=${NK}/logs"
 fi
