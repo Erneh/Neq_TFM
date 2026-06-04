@@ -30,3 +30,10 @@ mkdir -p $LOG_LOC
 echo "log can be found in $LOG_LOC"
 N_LOGS=$(ls -1 ${LOG_LOC} | wc -l)
 python3 -u ARPES/neq_f.py "$@" > "$LOG_LOC/log$N_LOGS.txt" 2>&1
+
+# Eliminate the log in the case the code finds calculations already done
+EXIT_CODE=${PIPESTATUS[0]}
+if [ $EXIT_CODE = 42 ]; then
+    rm "$LOG_LOC/log$N_LOGS.txt"
+    echo "Calculation made, log erased"
+fi

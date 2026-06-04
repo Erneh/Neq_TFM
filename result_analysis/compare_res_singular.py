@@ -20,7 +20,7 @@ sys.path.append('Code/Neq_TFM')
 
 from ham_creation import create_hex_ham
 from lat_creation import get_positions_graphene
-from core import DOS_sparse, load_data
+from core import DOS_sparse, load_data, str_parameters
 from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 # Benchmarking
@@ -80,35 +80,61 @@ t_vec_measures = np.linspace(0, n_periods*T, N_measures)
 
 
 hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
-t_vec_measures = np.linspace(0, n_periods*T, N_measures)
 
 
-fig_title_info = f'N={2**N_pot}, $\\hbar \\omega$={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}'
+
+fig_title_info = f'N={2**N_pot}, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}'
 # ------------------------------------------------------------------------------
 # First element
-N_pot = 17
-mu = 0.01
-modifier_id = 'linear'
-
+str1 = 'circle  16      0.5     1e-09   0.01    0.020   256     1   4       32      1000    basic   0.0     1'
+modifier_id1, N_pot1, E1, Temp1, mu1, gamma1, M1, N_random_vector1, n_periods1, meas_per_T1, steps_per_T1, type_ham1, ham_param1 = str_parameters(str1)
 # Loading the info in the .npy files
-EF_list1, n_E_list1, dos_list1, dosn_list1 = load_data(modifier_id, N_pot, E, Temp, mu, gamma, 
-                        M, N_random_vector, n_periods, meas_per_T, steps_per_T, type_ham, ham_params, R=None)
+EF_list1, n_E_list1, dos_list1, dosn_list1 = load_data(modifier_id1, N_pot1, E1, 
+    Temp1, mu1, gamma1, M1, N_random_vector1, n_periods1, meas_per_T1, steps_per_T1, 
+    type_ham1, ham_param1, R=None)
 
 # Readying identifier on graph
-label1 = f"linear"
+label1 = f"$\\hbar \\omega = {E1}$ eV"
 color1 = 'blue'
+
+# Parameters of the laser
+N1 = 2**N_pot1
+N_measures1 = meas_per_T1*n_periods1
+w1 = E1/jcl.hbar_fs 
+T1 = 2*np.pi/w1
+t_vec1 = np.linspace(0,n_periods1*T1 , steps_per_T1*n_periods1)   
+# Amount of half multiples of E where the occupation is obtained
+hE_reps1 = 2
+# Broadening in the energies
+t_vec_measures1 = np.linspace(0, n_periods1*T1, N_measures1)
+
+
+hE_list1 = [hE*E1/2 for hE in range(-hE_reps1, hE_reps1+1)]
+
+
 # ------------------------------------------------------------------------------
 # Second element
-N_pot = 17
-mu = 0.01
-modifier_id = 'circle'
+str2 = 'circle  16      1.0     1e-09   0.01    0.020   256     1   4       32      1000    basic   0.0     1'
+modifier_id2, N_pot2, E2, Temp2, mu2, gamma2, M2, N_random_vector2, n_periods2, meas_per_T2, steps_per_T2, type_ham2, ham_param2 = str_parameters(str2)
 
 # Loading the info in the .npy files
-EF_list2, n_E_list2, dos_list2, dosn_list2 = load_data(modifier_id, N_pot, E, Temp, mu, gamma, 
-                        M, N_random_vector, n_periods, meas_per_T, steps_per_T, type_ham, ham_params, R=None)
+EF_list2, n_E_list2, dos_list2, dosn_list2 = load_data(modifier_id2, N_pot2, E2,
+     Temp2, mu2, gamma2, M2, N_random_vector2, n_periods2, meas_per_T2, steps_per_T2, 
+     type_ham2, ham_param2)
+
+# Parameters of the laser
+w2 = E/jcl.hbar_fs 
+T2 = 2*np.pi/w2  
+t_vec2 = np.linspace(0,n_periods2*T2 , steps_per_T2*n_periods2)  
+N_measures2 = meas_per_T2*n_periods2 
+# Broadening in the energies
+t_vec_measures2 = np.linspace(0, n_periods2*T2, N_measures2)
+hE_reps2 = 2
+
+hE_list2 = [hE*E2/2 for hE in range(-hE_reps2, hE_reps2+1)]
 
 
-label2 = f"circle"
+label2 = f"$\\hbar \\omega = {E2}$ eV"
 color2 = 'red'
 # ------------------------------------------------------------------------------
 # Third element
@@ -136,18 +162,17 @@ color_list = ['olivedrab', 'red', 'orange', 'blue', 'darkviolet']
 total_nhE = 2*hE_reps + 1 
 
 
-occ_drop_list1, fourier_occ1, freq1, char_freq1, max_freq_ind1 = frequency_analysis(EF_list1, n_E_list1, hE_list, t_vec_measures, T, range_search)
-occ_drop_list2, fourier_occ2, freq2, char_freq2, max_freq_ind2 = frequency_analysis(EF_list2, n_E_list2, hE_list, t_vec_measures, T, range_search)
+occ_drop_list1, fourier_occ1, freq1, char_freq1, max_freq_ind1 = frequency_analysis(EF_list1, n_E_list1, hE_list1, t_vec_measures1, T1, range_search)
+occ_drop_list2, fourier_occ2, freq2, char_freq2, max_freq_ind2 = frequency_analysis(EF_list2, n_E_list2, hE_list2, t_vec_measures2, T2, range_search)
 #occ_drop_list3, fourier_occ3, freq3, char_freq3, max_freq_ind3 = frequency_analysis(EF_list3, n_E_list3, hE_list, t_vec_measures, T, range_search)
 
 
-char_freq1*jcl.hbar_fs
 
 # General figure to contain all important data
 fig, ax = plt.subplots()
-ax.plot(np.array(t_vec_measures)/T, occ_drop_list1[3], c=color_list[2], 
+ax.plot(np.array(t_vec_measures1), occ_drop_list1[3], c=color_list[2], 
         marker='.', ls='--', label=label1)
-ax.plot(np.array(t_vec_measures)/T, occ_drop_list2[3], c=color_list[3], 
+ax.plot(np.array(t_vec_measures2), occ_drop_list2[3], c=color_list[3], 
         marker='.', ls='--', label=label2)
 #ax.plot(np.array(t_vec_measures)/T, occ_drop_list3[3], c=color_list[4], 
 #        marker='.', ls='--', label=label3)
@@ -156,7 +181,7 @@ ax.set_ylabel('$n(t)$')
 ax.set_title(f"$E=0.5\\hbar \\omega$ eV")
 fig.suptitle(fig_title_info)
 ax.legend()
-
+#%%
 
 # General figure to contain all important data
 fig, ax = plt.subplots()

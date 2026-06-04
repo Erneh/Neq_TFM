@@ -35,3 +35,18 @@ positions = jcl.lattice_hexagonal(N)
 Ham = jcl.H_graphene(positions, -2.7 + 0j, 0 + 0j, periodic=True, type_H='ELL')
 
 print(Ham.len_row)
+
+
+#%% Test random stuff
+from core import random_vector
+N = 2**16
+dt = 0.24595
+R = random_vector(N, n_rand=1)[:,0]
+
+Rk = np.fft.fft(R)
+
+freqs = np.fft.fftfreq(N, dt)
+
+
+fig, ax = plt.subplots()
+ax.plot(freqs, np.abs(Rk))

@@ -28,7 +28,7 @@ a_l = 0.24595
 type_ham = 'basic'
 # kpath n
 path_type = 'full'
-nk = 10
+nk = 30
 # Type of light               
 modifier_id = 'linear_packed'
 # Energy in pulse                        
@@ -42,14 +42,14 @@ gamma = 0.020
 
 ### SIMULATION
 # Size of hamiltonian (2**N_pot)
-N_pot = 16
+N_pot = 20
 N = 2**N_pot
 # Amount of periods to be simulated
 n_periods = 1
 # Simulation steps per period
 steps_per_T = 1000
 # Amount of measures per period
-meas_per_T = 16
+meas_per_T = 4
 N_measures = meas_per_T*n_periods
 # Amount of random vectors used in calculation
 N_random_vector = 1
@@ -186,23 +186,91 @@ elif path_type == 'vall':
     klabs = ['$\\Gamma$', '$K$', '$\\Gamma$']
 
 
-obs_list = [['n_f', N_measures, M, kpath.T, S, index_list]]
-n_mat_f,dos_n_mat_f,t_vec_meass_n_f = jcl.kpm_rho_neq_f(Ham,t_vec,0.0,modifier_id=modifier_id,modifier_params=modifier_params,Temp=Temp,mu=mu,observale_list=obs_list,M=M)
+obs_list = [['n', N_measures, M, kpath.T],
+    ['n_f', N_measures, M, kpath.T, S, index_list]]
+n_mat,dos_n_mat,t_vec_meass_n,n_mat_f,dos_n_mat_f,t_vec_meass_n_f = jcl.kpm_rho_neq_f2(Ham,t_vec,0.0,modifier_id=modifier_id,modifier_params=modifier_params,Temp=Temp,mu=mu,observale_list=obs_list,M=M)
 
-# Processing the data to reduce saved stuff
+#%%
+
 EF_list = dos_n_mat_f[0,0,:,0]
-dosn_mean = np.mean(dos_n_mat_f, axis=0)
+#dosn_f_mean = np.mean(dos_n_mat_f[:meas_per_T], axis=0)
+
+
+H_bounds = Ham.bounds
+H_shape = Ham.shape
+
+dosn_f_mean = np.mean(dos_n_mat_f[:,:,:,1], axis=0)/(H_bounds[1]*N**2)
+
+col_min = dosn_f_mean.min()
+col_max = dosn_f_mean.max()/64
+levels = 400
+col_levels = np.linspace(col_min, col_max, levels)
+
+
+fig_title = f'{modifier_id}, $N={N}$, $\\Gamma={gamma}$, $M={M}$'
+fig, ax = plt.subplots()
+contour = ax.contourf(kdist, EF_list, dosn_f_mean.T, col_levels, extend='max')
+#ax.imshow((dosn_f_mean.T)[::-1], aspect='auto')
+cbar = plt.colorbar(contour)
+#ax.imshow(dos_n_mat_f[i,:,:,1].T/(H_bounds[1]*N**2), extent=[kdist[0], kdist[-1], dos_n_mat_f[i,:,:,0].min(), dos_n_mat_f[i,:,:,0].max()],origin='lower', aspect='auto', cmap='viridis')
+ax.set_xticks(kdist[kind], labels=klabs)
+ax.set_ylabel('Energy')
+fig.suptitle(fig_title)
+#ax.plot(kdist[:,None], autV, c='pink')
 
 ## Saving results
-print('Results are being saved...')
-save_path = f'ARPES/Out/{folder_name}/dosn'
-os.makedirs(save_path, exist_ok=True)
-# Read existing files in the folder
+#print('Results are being saved...')
+#save_path = f'ARPES/Out/{folder_name}/dosn'
+#os.makedirs(save_path, exist_ok=True)
+## Read existing files in the folder
+#
+## Only one is needed for each saved stuff
+#np.save(f'{save_path}/E.npy', EF_list)
+#np.save(f'{save_path}/dosn_full.npy', dos_n_mat_f)
 
-# Only one is needed for each saved stuff
-np.save(f'{save_path}/E.npy', EF_list)
-np.save(f'{save_path}/dosn_full.npy', dos_n_mat_f)
 
+
+# %%
+from matplotlib.colors import Normalize
+from matplotlib.cm import ScalarMappable
+
+cmap = plt.cm.plasma 
+norm = Normalize(vmin=t_vec.min()/T, vmax=t_vec.max()/T)
+
+min_e, max_e = -2.5, 2.5
+hw_lines_step = 0.5*E
+hw_hlines = [i for i in [hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
+hw_hlines += [i for i in [-hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
+n_E_list = n_mat[:,:, 1]
+dosn_list = dos_n_mat[:,:,1]
+# Text box
+props = dict(boxstyle='round', facecolor='white', alpha=0.8)
+# ------------------------------------------------------------------------------
+# Occupation (E)
+# Text box
+fig, ax = plt.subplots()
+for i in range(N_measures):
+    ax.plot(EF_list, n_E_list[i,:], color=cmap(norm(t_vec_meass_n[i]/T)), label=f't={round(t_vec_meass_n[i]/T, 3)}T')
+#ax.legend()
+cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
+ax.set_xlabel('Energy (eV)')
+ax.set_ylabel('$n(\\varepsilon)$')
+ax.set_xlim(min_e, max_e)
+ax.vlines(hw_hlines, 0, 1, color='grey', ls='--', alpha=0.5, zorder=1)
+ax.set_title('Occupation Number')
+
+# ------------------------------------------------------------------------------
+# DOS*Occ (Energy)
+fig, ax = plt.subplots()
+for i in range(N_measures):
+    ax.plot(EF_list, dosn_list[i,:], color=cmap(norm(t_vec_meass_n[i])), label=f't={round(t_vec_meass_n[i]/T, 3)}T')
+#ax.legend()
+cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
+ax.set_xlabel('Energy (eV)')
+ax.set_ylabel('$n(\\varepsilon)$')
+#ax.vlines(hw_hlines, 0, np.max(dos_list), color='grey', ls='--', alpha=0.5, zorder=1)
+ax.vlines([0], 0, np.max(dosn_list), color='grey', ls='--', alpha=0.8, zorder=1)
+ax.set_title('Density of States')
 
 
 # %%

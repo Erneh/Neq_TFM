@@ -18,6 +18,9 @@ from lat_creation import get_positions_graphene
 from ARPES.kpath_stuff import rec_lattice, plot_1BZ, path_chart
 from core import random_vector
 
+
+
+
 mass = 0.5
 t = -2.7
 
@@ -44,7 +47,7 @@ def H_og(k):
 
 # ------------------------------------------------------------------------------
 # CREATION OF THE HAMILTONIAN
-N_pot = 18
+N_pot = 16
 ham_type = 'jcl'
 N = 2**N_pot
 if ham_type == 'basic':
@@ -99,3 +102,22 @@ ax.plot(kdist[:,None], autV, c='gray', ls='--')
 fig.suptitle(fig_title)
 
 # %%
+rnd_vec = random_vector(N, 1)[:,0]
+DOS_f = jcl.kpm_n_dos_n_f(Ham, M, kpath.T, S, index_list, rnd_vec, rnd_vec)
+
+
+autV, autE = np.linalg.eigh(H_og(kpath))
+
+col_min = DOS_f[:,:,1].T.min()
+col_max = DOS_f[:,:,1].T.max()/64
+levels = 400
+col_levels = np.linspace(col_min, col_max, levels)
+
+fig_title = f'{ham_type},N={N}, $m={mass}$, $M={M}$'
+EF_list = DOS_f[0,:,0]
+fig, ax = plt.subplots()
+contour = ax.contourf(kdist, EF_list, DOS_f[:,:,1].T, col_levels, extend='max')
+cbar = plt.colorbar(contour)
+ax.set_xticks(kdist[kind], labels=klabs)
+ax.plot(kdist[:,None], autV, c='gray', ls='--')
+fig.suptitle(fig_title)

@@ -12,40 +12,40 @@ import jclsquant as jcl
 mass = 0.50
 t = -2.7
 a_l = 0.24595
-type_ham = 'jclhbn'
+type_ham = 'hbn'
 # kpath n
 path_type = 'full'
 nk = 100
 # Type of light               
-modifier_id = 'circle'
+modifier_id = 'linear_packed'
 # Energy in pulse                        
 E = 1.0
 # Temperature                       
 Temp = 1e-9
 # Chemical potential
-mu = 0.50
+mu = 0.00
 # Intensity param     (no units)
 gamma = 0.020
 
 ### SIMULATION
 # Size of hamiltonian (2**N_pot)
-N_pot = 16
+N_pot = 18
 N = 2**N_pot
 # Amount of periods to be simulated
-n_periods = 5
+n_periods = 1
 # Simulation steps per period
 steps_per_T = 1000
 # Amount of measures per period
 meas_per_T = 40
 N_measures = meas_per_T*n_periods
 # Amount of random vectors used in calculation
-N_random_vector = 1
+N_random_vector = 2
 # Momenta
 M = int(np.sqrt(N))
 
-str_params = 'linear 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 jclhbn 0.50'
+str_params = 'linear 18 1.0 1e-09 0.00 0.020 512 5 full 100 1 40 1000 basic 0.50'
 modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, path_type, nk, n_periods, meas_per_T, steps_per_T, type_ham, mass = string_to_parameters(str_params)
-fig_title = f'{modifier_id}, {type_ham}, $N={N}$, $\\mu={mu}$ eV, $\\Gamma={gamma}$, $M={M}$'
+fig_title = f'{modifier_id}, {type_ham}, $N={2**N_pot}$, $\\mu={mu}$ eV, $\\Gamma={gamma}$, $M={M}$'
 
 print('PARAMETERS OF CALCULATION')
 print(f'Type of hamiltonian is {type_ham}')
@@ -95,9 +95,11 @@ T = 2*np.pi/w
 # Time of  (fs)
 
 t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)
-dosn_f_mean = np.mean(dosn_f, axis=0)
-#%% Graphing stuff 
 
+#%% Graphing stuff 
+H_bounds = Ham.bounds
+H_shape = Ham.shape
+dosn_f_mean = np.mean(dosn_f[:meas_per_T], axis=0)/(H_bounds[1]*N**2)
 # Seeing light pulse
 if modifier_id == 'circle':
     # Polarization (right or left)

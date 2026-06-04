@@ -210,13 +210,21 @@ def get_path(path_type, nk):
         kpoints = [Gamma, K, M_point, Kp, Gamma]
         kpath, kind, kdist = path_chart(kpoints, nk, recLat)
         klabs = ['$\\Gamma$', '$K$', '$M$', "$K'$", '$\\Gamma$']
+
     elif path_type == 'part':
         kpoints = [Gamma, K, M_point, Gamma]
         kpath, kind, kdist = path_chart(kpoints, nk, recLat)
         klabs = ['$\\Gamma$', '$K$', '$M$', '$\\Gamma$']
+
     elif path_type == 'vall':
         kpoints = [Gamma, K, Gamma]
         kpath, kind, kdist = path_chart(kpoints, nk, recLat)
         klabs = ['$\\Gamma$', '$K$', '$\\Gamma$']
+
+    elif path_type == 'papr':
+        kpoints = [K-0.2*np.array([0, 1]), K, K+0.2*np.array([0, 1])]
+        kpath, kind, kdist = path_chart(kpoints, nk, recLat)
+        klabs = ['', '$K$', '']
+        
     return rLat, Rat, kpath, kind, kdist, klabs
 

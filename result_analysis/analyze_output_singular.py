@@ -33,31 +33,31 @@ from datetime import timedelta
 # Type of light               
 modifier_id = 'linear'
 # Hamiltonian type
-type_ham = 'hbn'
+type_ham = 'basic'
 # Parameters of the ham (only read if hbn)
 ham_params = 0.5
 # Energy in pulse                        
-E = 1.1
+E = 1.0
 # Temperature                       
 Temp = 1e-9
 # Chemical potential
 mu = 0.01
 # Intensity param     (no units)
-gamma = 0.020
+gamma = 0.015
 
 ## SIMULATION
 # Size of hamiltonian (2**N_pot)
-N_pot = 17
+N_pot = 19
 N = 2**N_pot
 # Amount of periods to be simulated
-n_periods = 100
+n_periods = 500
 # Simulation steps per period
 steps_per_T = 1000
 # Amount of measures per period
 meas_per_T = 16
 N_measures = meas_per_T*n_periods
 # Amount of random vectors used in calculation
-N_random_vector = 1
+N_random_vector = 5
 # Momenta
 M = int(np.sqrt(N))
 #M = 362
@@ -140,7 +140,34 @@ ax.set_xlim(min_e, max_e)
 ax.vlines(hw_hlines, 0, 1, color='grey', ls='--', alpha=0.5, zorder=1)
 fig.suptitle(fig_title_info)
 ax.set_title('Occupation Number')
+#ax.text(min_e + 0.5*E, 0.2, extra_text, bbox=props)
+
+fig, ax = plt.subplots()
+for i in range(N_measures):
+    ax.plot(EF_list[i,:], n_E_list[i,:], color=cmap(norm(t_vec_measures[i]/T)), label=f't={round(t_vec_measures[i]/T, 3)}T')
+#ax.legend()
+cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
+ax.set_xlabel('Energy (eV)')
+ax.set_ylabel('$n(\\varepsilon)$')
+ax.set_xlim(min_e, max_e)
+ax.vlines(hw_hlines, 0, 1, color='grey', ls='--', alpha=0.5, zorder=1)
+fig.suptitle(fig_title_info)
+ax.set_title('Occupation Number')
 ax.text(min_e + 0.5*E, 0.2, extra_text, bbox=props)
+
+fig, ax = plt.subplots()
+ax.plot(EF_list[0,:], n_E_list[-10,:], color='blue')
+#ax.legend()
+#cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
+ax.set_xlabel('Energy (eV)')
+ax.set_ylabel('$n(\\varepsilon)$')
+ax.set_xlim(min_e, max_e)
+ax.vlines(hw_hlines, 0, 1, color='grey', ls='--', alpha=0.5, zorder=1)
+fig.suptitle(fig_title_info)
+ax.set_title('Occupation Number')
+#ax.text(min_e + 0.5*E, 0.2, extra_text, bbox=props)
+
+
 
 # ------------------------------------------------------------------------------
 # DOS (Energy)
@@ -219,3 +246,5 @@ ax.set_xlabel('Normal Frequency (period$^{-1}$)')
 ax.set_ylabel('Amplitude')
 ax.set_title('FFT')
 fig.suptitle(fig_title_info)
+
+# %%

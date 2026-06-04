@@ -92,6 +92,43 @@ def check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vect
     return flag
 
 
+def str_parameters(str_params):
+    """
+    Assign parameters by using the same string that is used to calculate them in 
+    the first place
+    """
+    # Getting the parameters from the strings
+    params = [i for i in str_params.split(' ') if len(i) > 0]
+    # Assigning to specific variables
+    modifier_id = params[0]
+    # Power to which the number of atoms is 'powered'
+    N_pot = int(params[1])
+    # Energy in pulse                        
+    E = float(params[2])     
+    # Temperature                       
+    Temp = float(params[3])
+    # Chemical potential
+    mu = float(params[4])
+    # Intensity param     (no units)
+    gamma = float(params[5])
+    # Amount of moments used to calculate
+    M = int(params[6])
+    # Amount of random vectors used in calculation
+    N_random_vector = int(params[7])
+
+    # # periods included in sims
+    n_periods = int(params[8])
+    # Amount of measures per period
+    meas_per_T = int(params[9])
+    # steps/T
+    steps_per_T = int(params[10])
+    # Type of hamiltonian used in the calculations
+    type_ham = params[11]
+    # Parameter of the given hamiltonian
+    ham_param = float(params[12])
+
+    return modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, n_periods, meas_per_T, steps_per_T, type_ham, ham_param
+
 def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
                         n_periods, meas_per_T, steps_per_T, type_ham, ham_params, R=None, out_file_loc=''):
     '''
@@ -103,6 +140,8 @@ def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
         else:
             mass = ham_params
         folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}_m={mass:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
+    elif type_ham == 'basic':
+        folder_name = f'{modifier_id}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
     else:
         folder_name = f'{modifier_id}{type_ham}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
 

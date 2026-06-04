@@ -17,7 +17,7 @@ import jclsquant as jcl
 
 from ham_creation import create_hex_ham
 from lat_creation import get_positions_graphene
-from ARPES.kpath_stuff import rec_lattice, path_chart
+from ARPES.kpath_stuff import get_path
 
 '''
 # ------------------------------------------------------------------------------
@@ -154,34 +154,17 @@ def neq_sim_f(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
 
     # --------------------------------------------------------------------------
     # CREATION OF A K-PATH (in the original cell, I suppose?)
-    a1 = a_l*np.array([1/2, 3**0.5/2])
-    a2 = a_l*np.array([-1/2, 3**0.5/2])
-    rLat = np.array([a1, a2])
-    recLat, BZ_points = rec_lattice(rLat)
-    K = BZ_points[4]
-    Kp = BZ_points[5]
-    M_point = (K + Kp)/2
-    Gamma = np.array([0.0, 0.0])
-    if path_type == 'full':
-        kpoints = [Gamma, K, M_point, Kp, Gamma]
-        kpath, kind, kdist = path_chart(kpoints, nk, recLat)
-        klabs = ['$\\Gamma$', '$K$', '$M$', "$K'$", '$\\Gamma$']
-    elif path_type == 'part':
-        kpoints = [Gamma, K, M_point, Gamma]
-        kpath, kind, kdist = path_chart(kpoints, nk, recLat)
-        klabs = ['$\\Gamma$', '$K$', '$M$', '$\\Gamma$']
-    elif path_type == 'vall':
-        kpoints = [Gamma, K, Gamma]
-        kpath, kind, kdist = path_chart(kpoints, nk, recLat)
-        klabs = ['$\\Gamma$', '$K$', '$\\Gamma$']
+    rLat, Rat, kpath, kind, kdist, klabs = get_path(path_type, nk)
 
 
-    obs_list = [['n_f', N_measures, M, kpath.T, S, index_list]]
+    obs_list = [['n', N_measures, M],
+                ['n_f', N_measures, M, kpath.T, S, index_list]]
 
     ## Saving results
     save_path = f'ARPES/Out/{folder_name}'
     os.makedirs(f'{save_path}/dosn_f', exist_ok=True)
-    os.makedirs(f'{save_path}/n_f', exist_ok=True)
+    os.makedirs(f'{save_path}/n', exist_ok=True)
+    os.makedirs(f'{save_path}/dosn', exist_ok=True)
     cR = len(os.listdir(f'{save_path}/dosn_f'))
     print(f'Calculations done: {cR}/{N_random_vector}')
     if cR < N_random_vector:
@@ -189,19 +172,24 @@ def neq_sim_f(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
         initial_time = time()
         for r in range(cR+1, N_random_vector+1):
             taux = time()
-            n_mat_f,dos_n_mat_f,t_vec_meass_n_f = jcl.kpm_rho_neq_f(Ham,t_vec,0.0,modifier_id=modifier_id,modifier_params=modifier_params,Temp=Temp,mu=mu,observale_list=obs_list,M=M)
+            n_mat,dos_n_mat,t_vec_meass_n,n_mat_f,dos_n_mat_f,t_vec_meass_n_f = jcl.kpm_rho_neq_f(Ham,t_vec,0.0,modifier_id=modifier_id,modifier_params=modifier_params,Temp=Temp,mu=mu,observale_list=obs_list,M=M)
             # Saving the energy and the measuring times in the first iteration
             if cR == 0:
                 EF_list = dos_n_mat_f[0,0,:,0]
                 np.save(f'{save_path}/E.npy', EF_list)
                 np.save(f'{save_path}/t_meas.npy', t_vec_meass_n_f)
+                Ham.save(f'{save_path}/Ham.npz')
             # Only one is needed for each saved stuff
-            np.save(f'{save_path}/n_f/{r}.npy', n_mat_f[:,:,:,1])
+            # np.save(f'{save_path}/n_f/{r}.npy', n_mat_f[:,:,:,1])
             np.save(f'{save_path}/dosn_f/{r}.npy', dos_n_mat_f[:,:,:,1])
+            np.save(f'{save_path}/dosn/{r}.npy', dos_n_mat[:,:,1])
+            np.save(f'{save_path}/n/{r}.npy', n_mat[:,:,1])
+
             print(f'Finished {r}/{N_random_vector} iterations! Time elapsed: {timedelta(seconds=time() - taux)}')
         print(f'All iterations calculated! Total time: {timedelta(seconds=time() - initial_time)}')
     else:
         print('There are already enough calculations with different random vectors!')
+        sys.exit(42)
     return 0
 
 if __name__ == '__main__':

@@ -1,0 +1,54 @@
+# COMMAND TO RUN CALCULATIONS 
+# grep -v '^#'  ARPES/arpes_inv.txt | xargs -L 1 -P 6 ./launcher_f.sh
+# MOD_ID      N_POT E TEMP  MU    GAM  M  R PATH  nk nT nMT stT ham  mass
+linear_packed 16 1.0 1e-09 0.05 0.020 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 0.10 0.020 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 0.20 0.020 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 0.40 0.020 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 0.20 0.010 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 0.00 0.020 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 0.20 0.020 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 0.20 0.030 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 0.80 0.020 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 1.00 0.020 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 1.50 0.020 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 2.00 0.020 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 3.00 0.020 256 1 full 100 1 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 5.00 0.020 256 1 full 100 1 40 1000 basic 0.50
+# Differences between circular/linear and basic/hbn
+linear 16 1.0 1e-09 0.50 0.020 256 1 full 100 5 40 1000 basic 0.50
+linear 16 1.0 1e-09 0.50 0.020 256 1 full 100 5 40 1000 hbn 0.50
+circle 16 1.0 1e-09 0.50 0.020 256 1 full 100 5 40 1000 hbn 0.50
+circle 16 1.0 1e-09 0.50 0.020 256 1 full 100 5 40 1000 basic 0.50
+linear 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 basic 0.50
+linear 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 hbn 0.50
+circle 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 hbn 0.50
+circle 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 basic 0.50
+# Check with jorgecódigo (this do not make sense because Pauli blocks them because Pauli blocking because they are blocked because of Pauli)
+linear_packed 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 hbn 0.50
+circle 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 jcl 0.50
+linear 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 jcl 0.50
+circle 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 jclhbn 0.50
+linear 16 1.0 1e-09 1.00 0.020 256 1 full 100 5 40 1000 jclhbn 0.50
+# Jumps can be made for a low enough chemical potential
+linear_packed 16 1.0 1e-09 0.00 0.020 256 1 full 100 5 40 1000 basic 0.50
+linear_packed 16 1.0 1e-09 0.00 0.020 256 1 full 100 5 40 1000 hbn 0.50
+linear 16 1.0 1e-09 0.00 0.020 256 1 full 100 5 40 1000 basic 0.50
+linear 16 1.0 1e-09 0.00 0.020 256 1 full 100 5 40 1000 hbn 0.50
+circle 16 1.0 1e-09 0.00 0.020 256 1 full 100 5 40 1000 basic 0.50
+circle 16 1.0 1e-09 0.00 0.020 256 1 full 100 5 40 1000 hbn 0.50
+# Repeating within only one period and with more sysetm size
+linear_packed 18 1.0 1e-09 0.00 0.020 512 5 full 100 1 40 1000 hbn 0.50
+linear_packed 18 1.0 1e-09 0.00 0.020 512 5 full 100 1 40 1000 basic 0.50
+linear 18 1.0 1e-09 0.00 0.020 512 5 full 100 1 40 1000 basic 0.50
+linear 18 1.0 1e-09 0.00 0.020 512 5 full 100 1 40 1000 hbn 0.50
+circle 18 1.0 1e-09 0.00 0.020 512 5 full 100 1 40 1000 basic 0.50
+circle 18 1.0 1e-09 0.00 0.020 512 5 full 100 1 40 1000 hbn 0.50
+# Testing big systems to see if negative numbers occurr
+linear_packed 22 1.0 1e-09 0.00 0.020 256 1 full 30 1 4 1000 hbn 0.50
+linear_packed 22 1.0 1e-09 0.00 0.020 256 1 full 30 1 4 1000 basic 0.50
+linear 22 1.0 1e-09 0.00 0.020 256 1 full 30 1 4 1000 basic 0.50
+linear 22 1.0 1e-09 0.00 0.020 256 1 full 30 1 4 1000 hbn 0.50
+circle 22 1.0 1e-09 0.00 0.020 256 1 full 30 1 4 1000 basic 0.50
+circle 22 1.0 1e-09 0.00 0.020 256 1 full 30 1 4 1000 hbn 0.50
