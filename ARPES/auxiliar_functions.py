@@ -89,12 +89,14 @@ def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
             lR = N_random_vector
         EF_list = np.load(f'{save_path}/E.npy')
         t_vec_meas = np.load(f'{save_path}/t_meas.npy')
-        n_f = np.load(f'{save_path}/n_f/1.npy')
+        Ham = jcl.load_ell(f'{save_path}/Ham.npz')
+        n_mat = np.load(f'{save_path}/n/1.npy')
+        dosn_mat = np.load(f'{save_path}/dosn/1.npy')
         dosn_f = np.load(f'{save_path}/dosn_f/1.npy')
         for r in range(2, 1+lR):
             n_f += np.load(f'{save_path}/n_f/{r}.npy')
             dosn_f += np.load(f'{save_path}/dosn_f/{r}.npy')
-        return EF_list, t_vec_meas, n_f, dosn_f
+        return EF_list, t_vec_meas, dosn_f/lR, n_mat/lR, dosn_mat/lR
     
     except FileNotFoundError:
         cR = 0

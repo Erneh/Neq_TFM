@@ -85,7 +85,7 @@ def H_og(k):
 
 
 # Loading data
-EF_list, t_vec_meas, n_f, dosn_f = load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
+EF_list, t_vec_meas, dosn_f, n_mat, dosn_mat = load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
               path_type, nk, n_periods, meas_per_T, steps_per_T, type_ham, mass)
 
 
