@@ -302,24 +302,33 @@ def frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T, range_sear
     """
     occ_drop_list, N_measures = extract_occ_time(t_vec_measures, EF_list, n_E_list, hE_list)
 
-    fourier_occ = np.abs(fft(occ_drop_list))[:,:N_measures//2]
+    fourier_occ = np.abs(np.fft.fft(occ_drop_list))[:,:N_measures//2]
     dt = t_vec_measures[1] - t_vec_measures[0]
     #df = 1/dt/N_measures
     #freq = np.arange(0, fourier_occ.shape[1], 1)*df*(2*np.pi)
-    freq = fftfreq(N_measures, dt)[:N_measures//2]*(2*np.pi)
+    freq = np.fft.fftfreq(N_measures, dt)[:N_measures//2]*(2*np.pi)
     df = freq[1] - freq[0]
     char_freq = np.zeros(occ_drop_list.shape[0])
     max_freq_ind = np.zeros(occ_drop_list.shape[0], dtype=np.int64)
+
     # Eliminating the first element of the arrays of freq and occ, as it always explodes
     freq = freq[1:]
     fourier_occ = fourier_occ[:,1:]
+
+    # Preparing a gaussian filder
+    w = (2*np.pi/T)
+    max_las_freq = round(freq[-1] / w)
+    std = 2*df
+    gaussians = (std*np.sqrt(2*np.pi))*np.exp(-0.5*(freq[None,:]-w*np.arange(0, max_las_freq+0.1, 1)[:,None])**2/std**2)
+    f_gaussian = 1 - np.sum(gaussians, axis=0) / np.sum(gaussians, axis=0).max()
+    f_gaussian[f_gaussian < 0.6] = 0.0
     # Checking only the frequencies between 0 and 1 (in laser period units)
-    inf_freqs = freq/(2*np.pi)*T < range_search - df/(2*np.pi)
+
     for (i, hE) in enumerate(hE_list):
         #max_freq_ind[i] = (np.where(fourier_occ[i, inf_freqs] == max(fourier_occ[i][inf_freqs])))[0][0]
-        max_freq_ind[i] = fourier_occ[i, inf_freqs].argmax()
+        max_freq_ind[i] = (fourier_occ[i]*f_gaussian).argmax()
         # Rule out noisy situation where no real mode is detected
-        if fourier_occ[i, inf_freqs][max_freq_ind[i]] < 1e-10:
+        if fourier_occ[i][max_freq_ind[i]] < 1e-10:
             max_freq_ind[i] = 0
         char_freq[i] = freq[max_freq_ind[i]]
     return occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind
@@ -329,7 +338,7 @@ def frequency_analysis_dict(res, range_search=1, use_dosn=False, hE_reps=2):
     hw = res['hw']
     w = hw/hbar
     T = 2*np.pi/w
-    t_vec_measures = np.linspace(0, res['n_periods'], res['n_periods']*res['meas_per_T'])
+    t_vec_measures = np.linspace(0, res['n_periods']*T, res['n_periods']*res['meas_per_T'])
     hE_list = [hE*hw/2 for hE in range(-hE_reps, hE_reps+1)]
     if use_dosn:
         occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(res['EF_list'], res['dosn_list'], hE_list, t_vec_measures, T, range_search)

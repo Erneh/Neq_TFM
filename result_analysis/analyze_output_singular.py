@@ -77,7 +77,7 @@ Temp = 1e-9
 # Chemical potential
 mu = 0.01
 # Intensity param     (no units)
-gamma = 0.005
+gamma = 0.045
 
 ## SIMULATION
 # Size of hamiltonian (2**N_pot)
@@ -240,13 +240,12 @@ ax.plot(freq*T/(2*np.pi), fourier_occ[3], c='blue', marker='.', ls='--',
 ax.plot(freq*T/(2*np.pi), fourier_occ[4], c='darkviolet', marker='.', ls='--', 
         label=f'$E = 1\\hbar\\omega$')
 # Markers of max frequencies
-#ax.scatter(freq[max_freq_ind[2]]*T/(2*np.pi), fourier_occ[2, max_freq_ind[2]], color='red', marker='*', zorder=2)
+ax.scatter(freq[max_freq_ind[2]]*T/(2*np.pi), fourier_occ[2, max_freq_ind[2]], color='red', marker='*', zorder=2)
 ax.scatter(freq[max_freq_ind[3]]*T/(2*np.pi), fourier_occ[3, max_freq_ind[3]], color='cyan',
            marker='*', zorder=2)
 ax.scatter(freq[max_freq_ind[4]]*T/(2*np.pi), fourier_occ[4, max_freq_ind[4]], color='magenta',
            marker='*', zorder=2)
 ax.vlines([range_search], 0, np.max(fourier_occ), ls='-.', color='gray')
-ax.set_xlim(0, max_freq)
 wc_text = f'$\\omega_c = {char_freq[2]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq[3]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq[4]:.6f}$ fs$^{{-1}}$'
 ax.text(0.72, 0.98, wc_text, transform=ax.transAxes,
         verticalalignment='top', bbox=props)

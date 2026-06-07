@@ -71,8 +71,6 @@ range_search = 1
 ## CALCULATED PARAMS
 # Parameters of the laser
 
-
-hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
 color_list = ['olivedrab', 'red', 'orange', 'blue', 'darkviolet']
 
 
@@ -92,7 +90,7 @@ res1 = {'modifier_id': 'linear',
         'N_random_vector' : 5,
         'M' : int(np.sqrt(2**19)),
         'label': 'linear graphene',
-        'color1': 'blue',
+        'color1': 'dodgerblue',
         'color2': 'cyan',
         'ls' : 'dashed'}
 
@@ -126,9 +124,9 @@ res3 = {'modifier_id': 'linear',
         'meas_per_T' : 16,
         'N_random_vector' : 5,
         'M' : int(np.sqrt(2**19)),
-        'label': 'circle graphene',
-        'color1': 'blue',
-        'color2': 'cyan',
+        'label': 'linear hbn',
+        'color1': 'green',
+        'color2': 'lime',
         'ls' : 'dashed'}
 
 res4 = {'modifier_id': 'circle',
@@ -143,15 +141,16 @@ res4 = {'modifier_id': 'circle',
         'meas_per_T' : 16,
         'N_random_vector' : 5,
         'M' : int(np.sqrt(2**19)),
-        'label': 'circle graphene',
-        'color1': 'red',
+        'label': 'circle hbn',
+        'color1': 'darkviolet',
         'color2': 'magenta',
         'ls' : 'dotted'}
 
 list_res = [res1, res2, res3, res4]
 # Initialize arrays to save results and add auxiliary stuff
+hE_reps = 2
 for res in list_res:
-    res.update({'char_freq' : np.zeros((len(gamma_list), len(hE_list)))})
+    res.update({'char_freq' : np.zeros((len(gamma_list), 2*hE_reps+1))})
     res['w'] = res['hw']/jcl.hbar_fs 
     res['T'] = 2*np.pi/res['w']    
     res['t_vec'] = np.linspace(0,n_periods*res['T'] , res['steps_per_T']*res['n_periods'])   
@@ -166,7 +165,7 @@ for (g, gamma) in enumerate(gamma_list):
         frequency_analysis_dict(res)
         res['char_freq'][g] = res['char_freq_s']
     
-    
+    '''
     # --------------------------------------------------------------------------
     # OCCUPATION(time) 0.5HW
     # General figure to contain all important data
@@ -206,7 +205,7 @@ for (g, gamma) in enumerate(gamma_list):
     fig.suptitle(fig_title_info)
     ax.legend()
     
-    
+    '''
     # --------------------------------------------------------------------------
     # FREQUENCY ANALYSIS OF THE RESULTS
     # General figure 0.5HW
@@ -217,8 +216,8 @@ for (g, gamma) in enumerate(gamma_list):
  
         fig, ax = plt.subplots()
         for res in list_res:
-            ax.plot(res['freq']/omega, res['fourier_occ'][3], c=res['color1'], marker='.', ls=res['ls'], label=res['label'])
-            ax.scatter(res['freq'][res['max_freq_ind'][3]]/omega, res['fourier_occ'][3, res['max_freq_ind'][3]], 
+            ax.plot(res['freq'], res['fourier_occ'][3], c=res['color1'], marker='.', ls=res['ls'], label=res['label'])
+            ax.scatter(res['freq'][res['max_freq_ind'][3]], res['fourier_occ'][3, res['max_freq_ind'][3]], 
                     color=res['color2'], marker='*', zorder=2)
             
         x_min, x_max = ax.get_xlim()
@@ -234,7 +233,7 @@ for (g, gamma) in enumerate(gamma_list):
         #ax.text(w/omega, np.max(fourier_occ1)*6/8, '$\\omega = \\omega_L$', verticalalignment='center', horizontalalignment='center', bbox=props)
         ax.legend()
         fig.suptitle(fig_title_info)
-
+        
 # Final plot of the gammas
 fig, ax = plt.subplots()
 for res in list_res:
@@ -245,27 +244,22 @@ ax.set_xlabel(f'Intensity $\\Gamma$')
 ax.set_ylabel('Angular frequency (las. period$^{-1}$)')
 ax.set_title(f'$\\omega_c$ in $E= 0.5\\hbar\\omega$')
 ax.legend()
-ax.set_xticks(gamma_list)
 fig.suptitle(f'$N={{{2**N_pot}}}$, $\\hbar\\omega$={E} eV, Temp={Temp} K, $\\mu$={mu} eV')
 
 
 #%%
 # Comparison for the presentation
-char_freqs_og = np.load('Out/char_freqs.npy')[:len(gamma_list)]
 omega_list = np.sqrt(3)*2.7*gamma_list*np.pi/jcl.hbar_fs
-fig, ax = plt.subplots()
-ax.plot(gamma_list, char_freq1[:,3], ls='--', c=color1, marker='.',
-        label=f'hBN {label1}')
-ax.plot(gamma_list, char_freq2[:,3], ls='--', c=color2, marker='.',
-        label=f'hBN {label2}')
-ax.plot(gamma_list, char_freqs_og, ls='--', c='green', marker='.',
-        label=f'graphene circle')
-ax.plot(gamma_list, lin_graphene, ls='--', c='magenta', marker='.',
-        label=f'graphene linear')
-ax.plot(gamma_list, omega_list, c='gray', label='$\\Omega(\\Gamma)$')
+fig, ax = plt.subplots(dpi=200)
+for res in list_res:
+    ax.plot(gamma_list, jcl.hbar_fs*res['char_freq'][:,3],ls=res['ls'], c=res['color1'], marker='.',
+            label=res['label'])
+
+ax.plot(gamma_list, jcl.hbar_fs*omega_list, c='gray', label='$\\Omega(\\Gamma)$')
 ax.set_xlabel(f'Intensity $\\Gamma$')
-ax.set_ylabel('Angular frequency (las. period$^{-1}$)')
+ax.set_ylabel('Energy (eV)')
 ax.set_title(f'$\\omega_c$ in $E= 0.5\\hbar\\omega$')
 ax.legend()
-ax.set_xticks(gamma_list)
 fig.suptitle(f'$N={{{2**N_pot}}}$, $\\hbar\\omega$={E} eV, Temp={Temp} K, $\\mu$={mu} eV')
+
+# %%
