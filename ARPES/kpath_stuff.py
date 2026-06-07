@@ -97,7 +97,7 @@ def rec_lattice(rLat, per=None):
     return recLat, BZ_points
 
 
-def path_chart(points, nk, recLat, mode=0):
+def path_chart(points, nk, recLat, mode=3):
     """
     Creamos un camino en un espacio de parámetros con una determinada densidad
     de puntos en cada camino. Por comodidad, los ptos están entre 0 y 1
@@ -172,6 +172,22 @@ def path_chart(points, nk, recLat, mode=0):
             l_seg.append(np.linspace(points[i], points[i+1], nk[i]))
             kind.append(nk[i])
         kpath = np.concatenate(tuple(l_seg), axis = 0)
+
+    if mode == 3:
+        # We get the total distance to calculate dk
+        total_dist = 0
+        for i in range(1, len(points)):
+            total_dist += np.sqrt(np.sum((points[i] - points[i-1])**2))
+        dk = total_dist / (nk+1)
+        # Now, the equivalent number of points is distributed between the segments
+        l_seg = []
+        kind = [0]
+        for i in range(1, len(points)):
+            dist = np.sqrt(np.sum((points[i] - points[i-1])**2))
+            nk_p = int(dist / dk)
+            kind.append(nk_p)
+            l_seg.append(np.linspace(points[i-1], points[i], nk_p))
+        kpath = np.concatenate(tuple(l_seg), axis = 0)
     # -------------------------------------------------------------------------
     # Calculamos las diferentes distancias de nuestros ks
     kdist = np.sqrt(np.sum((kpath[1:] - kpath[:-1])**2, axis=1))
@@ -193,7 +209,7 @@ def plot_1BZ(recLat, BZ_points):
     ax.set_ylabel('$k_y$')
     return fig, ax
 
-def get_path(path_type, nk):
+def get_path(path_type, nk, mode=3):
     a1 = a_l*np.array([1/2, 3**0.5/2])
     a2 = a_l*np.array([-1/2, 3**0.5/2])
     r1 = np.array([0.0, 0.0])
@@ -208,23 +224,35 @@ def get_path(path_type, nk):
     Gamma = np.array([0.0, 0.0])
     if path_type == 'full':
         kpoints = [Gamma, K, M_point, Kp, Gamma]
-        kpath, kind, kdist = path_chart(kpoints, nk, recLat)
+        kpath, kind, kdist = path_chart(kpoints, nk, recLat, mode)
         klabs = ['$\\Gamma$', '$K$', '$M$', "$K'$", '$\\Gamma$']
 
     elif path_type == 'part':
         kpoints = [Gamma, K, M_point, Gamma]
-        kpath, kind, kdist = path_chart(kpoints, nk, recLat)
+        kpath, kind, kdist = path_chart(kpoints, nk, recLat, mode)
         klabs = ['$\\Gamma$', '$K$', '$M$', '$\\Gamma$']
 
     elif path_type == 'vall':
         kpoints = [Gamma, K, Gamma]
-        kpath, kind, kdist = path_chart(kpoints, nk, recLat)
+        kpath, kind, kdist = path_chart(kpoints, nk, recLat, mode)
         klabs = ['$\\Gamma$', '$K$', '$\\Gamma$']
 
     elif path_type == 'papr':
-        kpoints = [K-0.2*np.array([0, 1]), K, K+0.2*np.array([0, 1])]
-        kpath, kind, kdist = path_chart(kpoints, nk, recLat)
+        kpoints = [K-2*np.array([0, 1]), K, K+2*np.array([0, 1])]
+        kpath, kind, kdist = path_chart(kpoints, nk, recLat, mode)
         klabs = ['', '$K$', '']
-        
+    
+    elif path_type=='vals':
+        a = (K[1] - Kp[1])/(K[0]-Kp[0])
+        b = Kp[1] - a*Kp[0]
+        x1, x2 = -14, 14
+        y1 = a*-10 + b
+        y2 = a*10 + b
+        p1 = np.array([x1, y1])
+        p2 = np.array([x2, y2])
+        kpoints = [p1, K, Kp, p2]
+        kpath, kind, kdist = path_chart(kpoints, nk, recLat, mode)
+        klabs = ['', '$K$', "$K'$", '']
+
     return rLat, Rat, kpath, kind, kdist, klabs
 

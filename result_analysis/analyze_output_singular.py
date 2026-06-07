@@ -27,11 +27,45 @@ from matplotlib.cm import ScalarMappable
 from time import time
 from datetime import timedelta
 
+
+plt.rcParams.update({
+    'font.size': 14,              # Tamaño base general (afecta a textos libres)
+    'figure.titlesize': 14,       # Título principal de la figura (suptitle)
+    'axes.titlesize': 14,         # Título de cada gráfico (title)
+    'axes.labelsize': 14,         # Etiquetas de los ejes (xlabel e ylabel)
+    'xtick.labelsize': 12,        # Números/marcas del eje X
+    'ytick.labelsize': 12,        # Números/marcas del eje Y
+    'legend.fontsize': 14,        # Texto de los elementos de la leyenda
+    'legend.title_fontsize': 15   # Título de la leyenda
+})
+
+plt.rcParams.update({
+    # 1. Líneas y Marcadores (El contenido de tus gráficos)
+    'lines.linewidth': 3,          # Grosor de las líneas de los gráficos
+    'lines.markersize': 10,           # Tamaño de los puntos/marcadores
+    'lines.markeredgewidth': 1.5,    # Grosor del borde de los marcadores
+
+    # 2. Gráficos de barras y formas (Patches)
+    'patch.linewidth': 1.2,          # Grosor del borde de las barras (plt.bar) o rectángulos
+
+    # 3. El marco del gráfico (Ejes / Spines)
+    'axes.linewidth': 1.5,           # Grosor de la línea del recuadro exterior del gráfico
+
+    # 4. La cuadrícula (Grid)
+    'grid.linewidth': 0.8,           # Grosor de las líneas de la cuadrícula de fondo
+
+    # 5. Las pequeñas marcas de los ejes (Ticks)
+    'xtick.major.size': 6,           # Qué tan largas son las marcas del eje X
+    'xtick.major.width': 1.5,        # Qué tan gordas son las marcas del eje X
+    'ytick.major.size': 6,           # Qué tan largas son las marcas del eje Y
+    'ytick.major.width': 1.5         # Qué tan gordas son las marcas del eje Y
+})
+
 # ------------------------------------------------------------------------------
 #### PARAMETERS OF THE MODEL
 ## PHYSICAL
 # Type of light               
-modifier_id = 'linear'
+modifier_id = 'circle'
 # Hamiltonian type
 type_ham = 'basic'
 # Parameters of the ham (only read if hbn)
@@ -43,7 +77,7 @@ Temp = 1e-9
 # Chemical potential
 mu = 0.01
 # Intensity param     (no units)
-gamma = 0.015
+gamma = 0.005
 
 ## SIMULATION
 # Size of hamiltonian (2**N_pot)
@@ -119,19 +153,23 @@ hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
 
 
 # Energy window and lines
+
+#%% ----------------------------------------------------------------------------
+# Occupation (E)
+graph_periods = 500
 cmap = plt.cm.plasma 
-norm = Normalize(vmin=t_vec.min()/T, vmax=t_vec.max()/T)
-min_e, max_e = -2.5*E, 2.5*E
+norm = Normalize(vmin=0.0, vmax=graph_periods)
+min_e, max_e = -0*E, 1.5*E
 hw_lines_step = 0.5*E
 hw_hlines = [i for i in [hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
 hw_hlines += [i for i in [-hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
-# ------------------------------------------------------------------------------
-# Occupation (E)
+
 # Text box
 props = dict(boxstyle='round', facecolor='white', alpha=0.8)
-fig, ax = plt.subplots()
-for i in range(N_measures):
-    ax.plot(EF_list[i,:], n_E_list[i,:], color=cmap(norm(t_vec_measures[i]/T)), label=f't={round(t_vec_measures[i]/T, 3)}T')
+fig, ax = plt.subplots(dpi=300)
+for i in range(meas_per_T*graph_periods):
+    if i % 16 == 0:
+        ax.plot(EF_list[i,:], n_E_list[i,:], color=cmap(norm(t_vec_measures[i]/T)), label=f't={round(t_vec_measures[i]/T, 3)}T')
 #ax.legend()
 cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
 ax.set_xlabel('Energy (eV)')
@@ -142,36 +180,10 @@ fig.suptitle(fig_title_info)
 ax.set_title('Occupation Number')
 #ax.text(min_e + 0.5*E, 0.2, extra_text, bbox=props)
 
-fig, ax = plt.subplots()
-for i in range(N_measures):
-    ax.plot(EF_list[i,:], n_E_list[i,:], color=cmap(norm(t_vec_measures[i]/T)), label=f't={round(t_vec_measures[i]/T, 3)}T')
-#ax.legend()
-cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
-ax.set_xlabel('Energy (eV)')
-ax.set_ylabel('$n(\\varepsilon)$')
-ax.set_xlim(min_e, max_e)
-ax.vlines(hw_hlines, 0, 1, color='grey', ls='--', alpha=0.5, zorder=1)
-fig.suptitle(fig_title_info)
-ax.set_title('Occupation Number')
-ax.text(min_e + 0.5*E, 0.2, extra_text, bbox=props)
 
-fig, ax = plt.subplots()
-ax.plot(EF_list[0,:], n_E_list[-10,:], color='blue')
-#ax.legend()
-#cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
-ax.set_xlabel('Energy (eV)')
-ax.set_ylabel('$n(\\varepsilon)$')
-ax.set_xlim(min_e, max_e)
-ax.vlines(hw_hlines, 0, 1, color='grey', ls='--', alpha=0.5, zorder=1)
-fig.suptitle(fig_title_info)
-ax.set_title('Occupation Number')
-#ax.text(min_e + 0.5*E, 0.2, extra_text, bbox=props)
-
-
-
-# ------------------------------------------------------------------------------
+#%% ----------------------------------------------------------------------------
 # DOS (Energy)
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(dpi=200)
 for i in range(N_measures):
     ax.plot(EF_list[i,:], dos_list[i,:], color=cmap(norm(t_vec_measures[i])), label=f't={round(t_vec_measures[i]/T, 3)}T')
 #ax.legend()
@@ -183,7 +195,7 @@ ax.vlines([0], 0, np.max(dos_list), color='grey', ls='--', alpha=0.8, zorder=1)
 fig.suptitle(fig_title_info)
 ax.set_title('Density of States')
 
-# ------------------------------------------------------------------------------
+#%% ----------------------------------------------------------------------------
 # DOS*Occ (Energy)
 fig, ax = plt.subplots()
 for i in range(N_measures):
@@ -197,28 +209,26 @@ ax.vlines([0], 0, np.max(dos_list), color='grey', ls='--', alpha=0.8, zorder=1)
 fig.suptitle(fig_title_info)
 ax.set_title('Density of States')
 
-# ------------------------------------------------------------------------------
+#%% ----------------------------------------------------------------------------
 # OCCUPATION (Time)
 color_list = ['olivedrab', 'red', 'orange', 'blue', 'darkviolet']
 
-occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(EF_list, dosn_list, hE_list, t_vec_measures, T, range_search)
-fig, ax = plt.subplots()
+occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T, range_search)
+fig, ax = plt.subplots(dpi=300)
 reescale = np.max(occ_drop_list[3]) / np.max(occ_drop_list[4]) / 2
-ax.plot(np.array(t_vec_measures)/T, occ_drop_list[4]*reescale, c='darkviolet', 
-        marker='.', ls='--', label=f"$E=1\\hbar\\omega$ $\\cdot$ {reescale:.3f}")
-ax.plot(np.array(t_vec_measures)/T, occ_drop_list[3], c='blue', 
-        marker='.', ls='--', label=f"$E=0.5\\hbar\\omega$")
-ax.plot(np.array(t_vec_measures)/T, occ_drop_list[2], c='orange', 
-        marker='.', ls='--', label=f"E=0")
+ax.plot(np.array(t_vec_measures)/T, occ_drop_list[3], c='blue', marker='.', ls='--', label=f"$E=0.5\\hbar\\omega$")
+ax.plot(np.array(t_vec_measures)/T, occ_drop_list[4]*reescale, c='darkviolet', marker='.', ls='--', label=f"$E=1\\hbar\\omega$ (scaled)")
+#ax.plot(np.array(t_vec_measures)/T, occ_drop_list[2], c='orange', marker='.', ls='--', label=f"E=0")
 ax.set_xlabel('Time (Periods)')
 ax.set_ylabel('$n(t)$')
 ax.set_title(fr'Occupation')
 fig.suptitle(fig_title_info)
 ax.legend()
+ax.set_xlim(0, 500)
 
-# ------------------------------------------------------------------------------
+#%% ----------------------------------------------------------------------------
 # FREQUENCY ANALYSIS OF THE RESULTS
-# General figure
+# Shitty plot
 max_freq = min(3, freq[-1]*T/(2*np.pi))
 props = dict(boxstyle='round', facecolor='white', edgecolor='grey', alpha=0.8)
 
@@ -230,8 +240,7 @@ ax.plot(freq*T/(2*np.pi), fourier_occ[3], c='blue', marker='.', ls='--',
 ax.plot(freq*T/(2*np.pi), fourier_occ[4], c='darkviolet', marker='.', ls='--', 
         label=f'$E = 1\\hbar\\omega$')
 # Markers of max frequencies
-ax.scatter(freq[max_freq_ind[2]]*T/(2*np.pi), fourier_occ[2, max_freq_ind[2]], color='red',
-           marker='*', zorder=2)
+#ax.scatter(freq[max_freq_ind[2]]*T/(2*np.pi), fourier_occ[2, max_freq_ind[2]], color='red', marker='*', zorder=2)
 ax.scatter(freq[max_freq_ind[3]]*T/(2*np.pi), fourier_occ[3, max_freq_ind[3]], color='cyan',
            marker='*', zorder=2)
 ax.scatter(freq[max_freq_ind[4]]*T/(2*np.pi), fourier_occ[4, max_freq_ind[4]], color='magenta',
@@ -247,4 +256,30 @@ ax.set_ylabel('Amplitude')
 ax.set_title('FFT')
 fig.suptitle(fig_title_info)
 
+# %%
+# Hopefully better plot
+max_freq = min(3*w, freq[-1]*T/(2*np.pi))
+props = dict(boxstyle='round', facecolor='white', edgecolor='grey', alpha=0.8)
+
+fig, ax = plt.subplots()
+#ax.plot(freq*T/(2*np.pi), fourier_occ[2], c='orange', marker='.', ls='--', label=f'$E = 0\\hbar\\omega$')
+ax.plot(freq, fourier_occ[3], c='blue', marker='.', ls='--', label=f'$E = 0.5\\hbar\\omega$')
+ax.plot(freq, fourier_occ[4], c='darkviolet', marker='.', ls='--', label=f'$E = 1\\hbar\\omega$')
+# Markers of max frequencies
+#ax.scatter(freq[max_freq_ind[2]], fourier_occ[2, max_freq_ind[2]], color='red', marker='*', zorder=2)
+ax.scatter(freq[max_freq_ind[3]], fourier_occ[3, max_freq_ind[3]], color='cyan',
+           marker='*', zorder=2)
+ax.scatter(freq[max_freq_ind[4]], fourier_occ[4, max_freq_ind[4]], color='magenta',
+           marker='*', zorder=2)
+ax.set_xlim(-0.05, max_freq)
+ax.vlines(np.arange(w, 3*w, w), 0, np.max(fourier_occ), ls=(0, (1, 1)), color='gray')
+ax.text(w-0.3, 80, '$\\omega=\\omega_p$', bbox=props)
+ax.text(2*w-0.3, 80, '$\\omega=2\\omega_p$', bbox=props)
+#wc_text = f'$\\omega_c = {char_freq[2]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq[3]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq[4]:.6f}$ fs$^{{-1}}$'
+#ax.text(0.72, 0.98, wc_text, transform=ax.transAxes, verticalalignment='top', bbox=props)
+#ax.legend(loc=(0.47, 0.7815), labelspacing=0.8, edgecolor='grey')
+ax.set_xlabel('Angular freq. (fs$^{-1}$)')
+ax.set_ylabel('Amplitude')
+ax.set_title('FFT')
+fig.suptitle(fig_title_info)
 # %%

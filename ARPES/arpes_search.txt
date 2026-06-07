@@ -1,0 +1,20 @@
+# COMMAND TO RUN CALCULATIONS 
+# grep -v '^#'  ARPES/arpes_search.txt | xargs -L 1 -P 6 ./launcher_f.sh
+# MOD_ID N_POT E TEMP  MU    GAM  M  R PATH  nk nT nMT stT ham  mass
+# Checking for the gap of the paper
+linear 18 1.0 1e-09 0.00 0.025 512 10 papr 100 4 8 1000 basic 0.50
+circle 18 1.0 1e-09 0.00 0.025 512 10 papr 100 4 8 1000 basic 0.50
+linear_packed 18 1.0 1e-09 0.00 0.025 512 10 papr 100 4 8 1000 basic 0.50
+circle_packed 18 1.0 1e-09 0.00 0.025 512 10 papr 100 4 8 1000 basic 0.50
+linear 18 1.0 1e-09 0.00 0.015 512 10 papr 100 4 8 1000 basic 0.50
+circle 18 1.0 1e-09 0.00 0.015 512 10 papr 100 4 8 1000 basic 0.50
+# Optical Selection Stuff
+linear 18 1.0 1e-09 0.00 0.015 512 10 vals 100 4 8 1000 basic 0.50
+circle 18 1.0 1e-09 0.00 0.015 512 10 vals 100 4 8 1000 basic 0.50
+linear 18 1.0 1e-09 0.00 0.015 512 10 vals 100 4 8 1000 hbn 0.50
+circle 18 1.0 1e-09 0.00 0.015 512 10 vals 100 4 8 1000 hbn 0.50
+# Gap but in good quality
+#linear 20 1.0 1e-09 0.00 0.025 1024 5 papr 100 4 8 1000 basic 0.50
+#circle 20 1.0 1e-09 0.00 0.025 1024 5 papr 100 4 8 1000 basic 0.50
+#linear 20 1.0 1e-09 0.00 0.025 1024 5 papr 100 4 8 1000 hbn 0.50
+#circle 20 1.0 1e-09 0.00 0.025 1024 5 papr 100 4 8 1000 hbn 0.50

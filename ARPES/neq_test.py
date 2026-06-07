@@ -16,7 +16,8 @@ import jclsquant as jcl
 
 from ham_creation import create_hex_ham
 from lat_creation import get_positions_graphene
-from ARPES.kpath_stuff import rec_lattice, plot_1BZ, path_chart
+from ARPES.kpath_stuff import get_path
+from ARPES.auxiliar_functions import plot_pulse
 from core import random_vector
 # ------------------------------------------------------------------------------
 ###### PARAMETERS OF THE SYSTEM
@@ -28,9 +29,9 @@ a_l = 0.24595
 type_ham = 'basic'
 # kpath n
 path_type = 'full'
-nk = 30
+nk = 100
 # Type of light               
-modifier_id = 'linear_packed'
+modifier_id = 'circle'
 # Energy in pulse                        
 E = 1.0
 # Temperature                       
@@ -38,16 +39,16 @@ Temp = 1e-9
 # Chemical potential
 mu = 0.00
 # Intensity param     (no units)
-gamma = 0.020
+gamma = 0.025
 
 ### SIMULATION
 # Size of hamiltonian (2**N_pot)
-N_pot = 20
+N_pot = 18
 N = 2**N_pot
 # Amount of periods to be simulated
-n_periods = 1
+n_periods = 4
 # Simulation steps per period
-steps_per_T = 1000
+steps_per_T = 500
 # Amount of measures per period
 meas_per_T = 4
 N_measures = meas_per_T*n_periods
@@ -110,7 +111,7 @@ T = 2*np.pi/w
 # Time of  (fs)
 
 t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)      
-            
+t_vec_meass = np.linspace(0, n_periods*T, meas_per_T*n_periods) 
 # Intensity of the laser
 #Phi0 = jcl.hbar_fs*2*np.pi
 #A0 = gamma*Phi0/(2*3**0.5*jcl.a_cc)
@@ -131,6 +132,11 @@ elif modifier_id == 'linear_packed':
     Tp = T
     modifier_params = (A0, w, Tp)
 
+elif modifier_id == 'circle_packed':
+    Tp = T
+    pol = 'r'
+    modifier_params = (A0, w, pol, Tp)
+
 
 #M = 1000
 
@@ -140,7 +146,6 @@ ind1 = np.kron(np.ones(N//4, dtype=bool), ar1)
 ind2 = np.kron(np.ones(N//4, dtype=bool), np.bool(1-ar1))
 total = np.arange(N)
 index_list = np.array([total[ind1], total[ind2]])
-
 
 
 a1 = a_l*np.array([1/2, 3**0.5/2])
@@ -163,35 +168,22 @@ def H_og(k):
                   [t*np.conj(delta), -np.ones(k_shape)*mass]])
     return np.einsum('...i->i...', H)
 
-
+plot_pulse(modifier_id, modifier_params, t_vec, t_vec_meass)
 # ------------------------------------------------------------------------------
 # CREATION OF A K-PATH (in the original cell, I suppose?)
-rLat = np.array([a1, a2])
-recLat, BZ_points = rec_lattice(rLat)
-K = BZ_points[4]
-Kp = BZ_points[5]
-M_point = (K + Kp)/2
-Gamma = np.array([0.0, 0.0])
-if path_type == 'full':
-    kpoints = [Gamma, K, M_point, Kp, Gamma]
-    kpath, kind, kdist = path_chart(kpoints, nk, recLat)
-    klabs = ['$\\Gamma$', '$K$', '$M$', "$K'$", '$\\Gamma$']
-elif path_type == 'part':
-    kpoints = [Gamma, K, M_point, Gamma]
-    kpath, kind, kdist = path_chart(kpoints, nk, recLat)
-    klabs = ['$\\Gamma$', '$K$', '$M$', '$\\Gamma$']
-elif path_type == 'vall':
-    kpoints = [Gamma, K, Gamma]
-    kpath, kind, kdist = path_chart(kpoints, nk, recLat)
-    klabs = ['$\\Gamma$', '$K$', '$\\Gamma$']
+path_type = 'papr'
+nk = 100
+rLat, Rat, kpath, kind, kdist, klabs = get_path(path_type, nk)
+
 
 
 obs_list = [['n', N_measures, M, kpath.T],
     ['n_f', N_measures, M, kpath.T, S, index_list]]
-n_mat,dos_n_mat,t_vec_meass_n,n_mat_f,dos_n_mat_f,t_vec_meass_n_f = jcl.kpm_rho_neq_f2(Ham,t_vec,0.0,modifier_id=modifier_id,modifier_params=modifier_params,Temp=Temp,mu=mu,observale_list=obs_list,M=M)
 
 #%%
+n_mat,dos_n_mat,t_vec_meass_n,n_mat_f,dos_n_mat_f,t_vec_meass_n_f = jcl.kpm_rho_neq_f(Ham,t_vec,0.0,modifier_id=modifier_id,modifier_params=modifier_params,Temp=Temp,mu=mu,observale_list=obs_list,M=M)
 
+#%% All Times
 EF_list = dos_n_mat_f[0,0,:,0]
 #dosn_f_mean = np.mean(dos_n_mat_f[:meas_per_T], axis=0)
 
@@ -199,24 +191,64 @@ EF_list = dos_n_mat_f[0,0,:,0]
 H_bounds = Ham.bounds
 H_shape = Ham.shape
 
-dosn_f_mean = np.mean(dos_n_mat_f[:,:,:,1], axis=0)/(H_bounds[1]*N**2)
-
-col_min = dosn_f_mean.min()
-col_max = dosn_f_mean.max()/64
-levels = 400
-col_levels = np.linspace(col_min, col_max, levels)
+dos_n_mat_f_norm = dos_n_mat_f[:,:,:,1]/(H_bounds[1]*N**2)
 
 
 fig_title = f'{modifier_id}, $N={N}$, $\\Gamma={gamma}$, $M={M}$'
-fig, ax = plt.subplots()
-contour = ax.contourf(kdist, EF_list, dosn_f_mean.T, col_levels, extend='max')
-#ax.imshow((dosn_f_mean.T)[::-1], aspect='auto')
-cbar = plt.colorbar(contour)
-#ax.imshow(dos_n_mat_f[i,:,:,1].T/(H_bounds[1]*N**2), extent=[kdist[0], kdist[-1], dos_n_mat_f[i,:,:,0].min(), dos_n_mat_f[i,:,:,0].max()],origin='lower', aspect='auto', cmap='viridis')
-ax.set_xticks(kdist[kind], labels=klabs)
-ax.set_ylabel('Energy')
-fig.suptitle(fig_title)
-#ax.plot(kdist[:,None], autV, c='pink')
+
+for i in range(len(t_vec_meass_n_f)):
+    col_min = 0
+    col_max = 1
+    levels = 400
+
+    col_levels = np.linspace(col_min, col_max, levels)
+    fig, ax = plt.subplots()
+    contour = ax.contourf(kdist, EF_list, dos_n_mat_f_norm[i,:,:].T, col_levels, extend='both')
+    ax.set_title(f't={t_vec_meass_n_f[i]/T}')
+    #ax.imshow((dosn_f_mean.T)[::-1], aspect='auto')
+    cbar = plt.colorbar(contour)
+    #ax.imshow(dos_n_mat_f[i,:,:,1].T/(H_bounds[1]*N**2), extent=[kdist[0], kdist[-1], dos_n_mat_f[i,:,:,0].min(), dos_n_mat_f[i,:,:,0].max()],origin='lower', aspect='auto', cmap='viridis')
+    ax.set_xticks(kdist[kind], labels=klabs)
+    ax.set_ylabel('Energy')
+    fig.suptitle(fig_title)
+    ax.set_ylim(-1.5, 1.5)
+    plt.show()
+    #ax.plot(kdist[:,None], autV, c='pink')
+
+
+#%% Mean Time
+EF_list = dos_n_mat_f[0,0,:,0]
+#dosn_f_mean = np.mean(dos_n_mat_f[:meas_per_T], axis=0)
+
+H_bounds = Ham.bounds
+H_shape = Ham.shape
+
+dos_n_mat_f_norm = dos_n_mat_f[:,:,:,1]/(H_bounds[1]*N**2)
+
+
+
+
+for i in range(1, n_periods+1):
+    dosn_f_mean = np.mean(dos_n_mat_f_norm[(i-1)*meas_per_T:i*meas_per_T,:,:], axis=0)
+
+    col_min = 0
+    col_max = 1
+    levels = 400
+    col_levels = np.linspace(col_min, col_max, levels)
+
+    fig_title = f'{modifier_id}, $N={N}$, $\\Gamma={gamma}$, $M={M}$'
+    fig, ax = plt.subplots()
+    contour = ax.contourf(kdist, EF_list, dosn_f_mean.T, col_levels, extend='both')
+    #ax.imshow((dosn_f_mean.T)[::-1], aspect='auto')
+    cbar = plt.colorbar(contour)
+    #ax.imshow(dos_n_mat_f[i,:,:,1].T/(H_bounds[1]*N**2), extent=[kdist[0], kdist[-1], dos_n_mat_f[i,:,:,0].min(), dos_n_mat_f[i,:,:,0].max()],origin='lower', aspect='auto', cmap='viridis')
+    ax.set_xticks(kdist[kind], labels=klabs)
+    ax.set_ylabel('Energy')
+    fig.suptitle(fig_title)
+    ax.set_title(f'Mean between periods {i-1} and {i}')
+    ax.set_ylim(-1.5, 1.5)
+    plt.show()
+    #ax.plot(kdist[:,None], autV, c='pink')
 
 ## Saving results
 #print('Results are being saved...')

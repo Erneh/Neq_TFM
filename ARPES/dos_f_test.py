@@ -15,13 +15,13 @@ import jclsquant as jcl
 
 from ham_creation import create_hex_ham
 from lat_creation import get_positions_graphene
-from ARPES.kpath_stuff import rec_lattice, plot_1BZ, path_chart
+from ARPES.kpath_stuff import get_path, plot_1BZ
 from core import random_vector
 
 
 
 
-mass = 0.5
+mass = 0.0
 t = -2.7
 
 a_l = 0.24595
@@ -47,8 +47,8 @@ def H_og(k):
 
 # ------------------------------------------------------------------------------
 # CREATION OF THE HAMILTONIAN
-N_pot = 16
-ham_type = 'jcl'
+N_pot = 18
+ham_type = 'basic'
 N = 2**N_pot
 if ham_type == 'basic':
     N1 = N2 = int(np.sqrt(N))//2
@@ -57,7 +57,7 @@ if ham_type == 'basic':
 elif ham_type == 'jcl':
     S = jcl.lattice_hexagonal(N)
     Ham = jcl.H_graphene(S, -2.7 + 0j, mass + 0j,  periodic=True, type_H='ELL')
-    M = int(N**0.5)
+M = int(N**0.5)
 #M = 1000
 # Selecting the indices accordingly
 ar1 = np.array([1, 0, 1, 0], dtype=bool)
@@ -66,19 +66,12 @@ ind2 = np.kron(np.ones(N//4, dtype=bool), np.bool(1-ar1))
 total = np.arange(N)
 index_list = np.array([total[ind1], total[ind2]])
 
+
 # ------------------------------------------------------------------------------
 # CREATION OF A K-PATH (in the original cell, I suppose?)
-rLat = np.array([a1, a2])
-recLat, BZ_points = rec_lattice(rLat)
-K = BZ_points[4]
-Kp = BZ_points[5]
-M_point = (K + Kp)/2
-Gamma = np.array([0.0, 0.0])
+path_type = 'vals'
 nk = 100
-kpoints = [Gamma, K, M_point, Kp, Gamma]
-kpath, kind, kdist = path_chart(kpoints, nk, recLat)
-klabs = ['$\\Gamma$', '$K$', '$M$', "$K'$", '$\\Gamma$']
-
+rLat, Rat, kpath, kind, kdist, klabs = get_path(path_type, nk)
 # %% Performing the actual calculations
 rnd_vec = random_vector(N, 1)[:,0]
 DOS_f = jcl.kpm_dos_f(Ham, M, kpath.T, S, index_list, rnd_vec)
@@ -99,6 +92,7 @@ contour = ax.contourf(kdist, EF_list, DOS_f[:,:,1].T, col_levels, extend='max')
 cbar = plt.colorbar(contour)
 ax.set_xticks(kdist[kind], labels=klabs)
 ax.plot(kdist[:,None], autV, c='gray', ls='--')
+ax.set_ylim(-1.5, 1.5)
 fig.suptitle(fig_title)
 
 # %%
@@ -121,3 +115,5 @@ cbar = plt.colorbar(contour)
 ax.set_xticks(kdist[kind], labels=klabs)
 ax.plot(kdist[:,None], autV, c='gray', ls='--')
 fig.suptitle(fig_title)
+
+# %%

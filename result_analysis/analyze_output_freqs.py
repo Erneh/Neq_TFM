@@ -31,13 +31,13 @@ from datetime import timedelta
 #### PARAMETERS OF THE MODEL
 ## PHYSICAL
 # Type of light               
-modifier_id = 'linear'
+modifier_id = 'circle'
 # Hamiltonian type
-type_ham = 'hbn'
+type_ham = 'basic'
 # Parameters of the ham (only read if hbn)
 ham_params = 0.5
 # Energy in pulse                        
-E = 1.1
+E = 1.0
 # Temperature                       
 Temp = 1e-9
 # Chemical potential
@@ -47,17 +47,17 @@ gamma_list = np.linspace(0.000, 0.025, 6)
 
 ## SIMULATION
 # Size of hamiltonian
-N_pot = 17
+N_pot = 19
 N = 2**N_pot
 # Amount of periods to be simulated
-n_periods = 100
+n_periods = 500
 # Simulation steps per period
 steps_per_T = 1000
 # Amount of measures per period
 meas_per_T = 16
 N_measures = meas_per_T*n_periods
 # Amount of random vectors used in calculation
-N_random_vector = 1
+N_random_vector = 5
 # Momenta
 M = int(np.sqrt(N))
 #M = 362
@@ -162,12 +162,12 @@ for (g, gamma) in enumerate(gamma_list):
 fig, ax = plt.subplots()
 #ax.plot(gamma_list, char_freq[:,2], ls='--', c=color_list[2], marker='.',
 #        label=f'$E = \\mu$ eV')
-ax.plot(gamma_list, char_freq[:,3], ls='--', c=color_list[3], marker='.',
+ax.plot(gamma_list, char_freq[:,3], ls='--', c='blue', marker='.',
         label=f'$E = 0.5\\hbar\\omega$')
-ax.plot(gamma_list, char_freq[:,4], ls='--', c=color_list[4], marker='.',
+ax.plot(gamma_list, char_freq[:,4], ls='--', c='darkviolet', marker='.',
         label=f'$E =1\\hbar\\omega$')
 ax.set_xlabel(f'Intensity $\\Gamma$')
-ax.set_ylabel('Angular frequency (las. period$^{-1}$)')
+ax.set_ylabel('Angular freq. (fs$^{-1}$)')
 ax.set_title(f'Characteristic frequencies for different intensities')
 ax.legend()
 ax.set_xticks(gamma_list)
@@ -177,10 +177,11 @@ fig.suptitle(f'$N={{{2**N_pot}}}$, $\\hbar\\omega$={E} eV, Temp={Temp} K, $\\mu$
 #%% Fitting to see if a relation is even possible
 # Importing the results from Floquet
 model_select = 'real'
-gamma_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}/gamma_list.npy')
-gap0_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}/gap0_{model_select}.npy')
-gap1_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}/gap1_{model_select}.npy')
-gap2_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}/gap2_{model_select}.npy')
+gap_type = 'bands'
+gamma_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}_{gap_type}/gamma_list.npy')
+gap0_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}_{gap_type}/gap0_{model_select}.npy')
+gap1_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}_{gap_type}/gap1_{model_select}.npy')
+gap2_fl = np.load(f'/home/eperez/Code/Floquet_tfm/Outr/GAP_hw={E}_{gap_type}/gap2_{model_select}.npy')
 
 # Seeing which indexes are used in the other results
 used_inds = []
@@ -197,6 +198,7 @@ gap2_fl = gap2_fl[used_inds]
 # Fitting of the curve
 from scipy.stats import linregress
 # GAP1 REGRESSION
+
 lin_reg1 = linregress(gap1_fl, char_freq[:,3]*jcl.hbar_fs)
 slope1 = lin_reg1.slope
 intercept1 = lin_reg1.intercept
@@ -213,12 +215,12 @@ test_gaps2 = np.linspace(np.min(gap2_fl), np.max(gap2_fl), 100)
 lin_predict2 = slope2*test_gaps2 + intercept2
 
 # Graph of the results
-fig, ax = plt.subplots(dpi=200)
+fig, ax = plt.subplots(dpi=400, figsize=(9, 6))
 ax.plot(gap1_fl, char_freq[:,3]*jcl.hbar_fs, ls='--', marker='.', color='blue', label='$\\Delta_1$ points')
 ax.plot(test_gaps1, lin_predict1, color='cyan', label=f'$y={slope1:.3f}x+{intercept1:.3f}, R^2={R2_1:.3f} $')
 
-ax.plot(gap2_fl, char_freq[:,4]*jcl.hbar_fs, ls='--', marker='.', color='orange', label='$\\Delta_2$ points')
-ax.plot(test_gaps2, lin_predict2, color='red', label=f'$y={slope2:.3f}x+{intercept2:.3f}, R^2={R2_2:.3f} $')
+ax.plot(gap2_fl, char_freq[:,4]*jcl.hbar_fs, ls='--', marker='.', color='darkviolet', label='$\\Delta_2$ points')
+ax.plot(test_gaps2, lin_predict2, color='magenta', label=f'$y={slope2:.3f}x+{intercept2:.3f}, R^2={R2_2:.3f} $')
 ax.set_xlabel('Gap size (eV)')
 ax.set_ylabel('$\\hbar \\omega_{char}$ (eV)')
 ax.set_title('Comparison Floquet vs NEQ')
@@ -236,20 +238,17 @@ rep = 1
 delta_w = (1-rep)*w
 #delta_w = w_laser - gap1_fl/jcl.hbar_fs
 rabi_freq = np.sqrt(delta_w**2 + w1**2)
-#rabi_freq = 2*vf*A0/jcl.hbar_fs*np.sqrt(1+E**2/(vf**2*A0**2))
-w**2*jcl.hbar_fs/(vf*A0)
+
 
 
 fig, ax = plt.subplots(dpi=200)
-ax.plot(gamma_list, char_freq[:,3], ls='--', c=color_list[3], marker='.',
-        label=f'$\\omega_c$ (NUMERICAL RESULTS)')
-ax.plot(gamma_list, rabi_freq, ls='--', c='red', marker='.',
-        label=f'$\\Omega$')
-ax.plot(gamma_list, rabi_freq/2, ls='--', c='orange', marker='.',
-        label=f'$\\Omega/2$')
+ax.plot(gamma_list, jcl.hbar_fs*rabi_freq, ls='-', c='red', label=f'$\\hbar\\Omega$')
+ax.plot(gamma_list, jcl.hbar_fs*rabi_freq/2, ls='-', c='orange', label=f'$\\hbar\\Omega/2$')
+ax.plot(gamma_list, jcl.hbar_fs*char_freq[:,3], ls='--', c=color_list[3], marker='.',
+        label=f'$\\hbar\\omega_c$ (num. results)')
 ax.set_title('Characteristic Frequencies in $E=0.5\\hbar\\omega$')
 ax.set_xlabel('Intensity parameter $\\Gamma$')
-ax.set_ylabel('Ang. frequency')
+ax.set_ylabel('Energy (eV)')
 ax.legend()
 
 #np.save('Out/char_freqs.npy', char_freq[:,3])

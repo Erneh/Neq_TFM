@@ -5,6 +5,8 @@ import os
 from scipy.spatial import cKDTree
 from scipy.fft import fft, fftfreq, rfft, rfftfreq   
 
+
+hbar = 0.6582
 # Random vector generation
 def random_vector(N, n_rand):
     return np.exp(np.random.random((N, n_rand))*2j*np.pi)
@@ -129,6 +131,92 @@ def str_parameters(str_params):
 
     return modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, n_periods, meas_per_T, steps_per_T, type_ham, ham_param
 
+def str_to_dict(str_params):
+    # Getting the parameters from the strings
+    params = [i for i in str_params.split(' ') if len(i) > 0]
+    # Assigning to specific variables
+    modifier_id = params[0]
+    # Power to which the number of atoms is 'powered'
+    N_pot = int(params[1])
+    # Energy in pulse                        
+    E = float(params[2])     
+    # Temperature                       
+    Temp = float(params[3])
+    # Chemical potential
+    mu = float(params[4])
+    # Intensity param     (no units)
+    gamma = float(params[5])
+    # Amount of moments used to calculate
+    M = int(params[6])
+    # Amount of random vectors used in calculation
+    N_random_vector = int(params[7])
+
+    # # periods included in sims
+    n_periods = int(params[8])
+    # Amount of measures per period
+    meas_per_T = int(params[9])
+    # steps/T
+    steps_per_T = int(params[10])
+    # Type of hamiltonian used in the calculations
+    type_ham = params[11]
+    # Parameter of the given hamiltonian
+    ham_param = float(params[12])
+    res = {'modifier_id': modifier_id,
+        'type_ham': type_ham,
+        'ham_params': ham_param,  
+        'hw' : E,                       
+        'Temp' :  Temp,
+        'mu' : mu,                 
+        'N_pot' : N_pot,
+        'n_periods' : n_periods,
+        'steps_per_T' : steps_per_T,
+        'meas_per_T' : meas_per_T,
+        'N_random_vector' : N_random_vector,
+        'M' : M,
+        'gamma' : gamma
+        }
+    return res
+
+def extract_from_dict(res_d):
+    # Assigning to specific variables
+    modifier_id = res_d['modifier_id']
+    # Power to which the number of atoms is 'powered'
+    N_pot = res_d['N_pot']
+    # Energy in pulse                        
+    E = res_d['hw']
+    # Temperature                       
+    Temp = res_d['Temp']
+    # Chemical potential
+    mu = res_d['mu']
+    # Intensity param     (no units)
+    gamma = res_d['gamma']
+    # Amount of moments used to calculate
+    M = res_d['M']
+    # Amount of random vectors used in calculation
+    N_random_vector = res_d['N_random_vector']
+    # # periods included in sims
+    n_periods = res_d['n_periods']
+    # Amount of measures per period
+    meas_per_T = res_d['meas_per_T']
+    # steps/T
+    steps_per_T = res_d['steps_per_T']
+    # Type of hamiltonian used in the calculations
+    type_ham = res_d['type_ham']
+    # Parameter of the given hamiltonian
+    ham_param = res_d['ham_params']
+    return modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, n_periods, meas_per_T, steps_per_T, type_ham, ham_param
+
+
+def load_data_dict(res_d, R=None, out_file_loc=''):
+    modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, n_periods, meas_per_T, steps_per_T, type_ham, ham_param = extract_from_dict(res_d)
+    EF_list, n_E_list, dos_list, dosn_list = load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, n_periods, meas_per_T, steps_per_T, type_ham, ham_param, R, out_file_loc)
+    res_d['EF_list'] = EF_list
+    res_d['n_E_list'] = n_E_list
+    res_d['dos_list'] = dos_list
+    res_d['dosn_list'] = dosn_list
+    return res_d
+
+
 def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
                         n_periods, meas_per_T, steps_per_T, type_ham, ham_params, R=None, out_file_loc=''):
     '''
@@ -235,3 +323,20 @@ def frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T, range_sear
             max_freq_ind[i] = 0
         char_freq[i] = freq[max_freq_ind[i]]
     return occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind
+
+
+def frequency_analysis_dict(res, range_search=1, use_dosn=False, hE_reps=2):
+    hw = res['hw']
+    w = hw/hbar
+    T = 2*np.pi/w
+    t_vec_measures = np.linspace(0, res['n_periods'], res['n_periods']*res['meas_per_T'])
+    hE_list = [hE*hw/2 for hE in range(-hE_reps, hE_reps+1)]
+    if use_dosn:
+        occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(res['EF_list'], res['dosn_list'], hE_list, t_vec_measures, T, range_search)
+    else:
+        occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(res['EF_list'], res['n_E_list'], hE_list, t_vec_measures, T, range_search)
+    res['occ_drop_list'] = occ_drop_list
+    res['fourier_occ'] = fourier_occ
+    res['freq'] = freq
+    res['char_freq_s'] = char_freq
+    res['max_freq_ind'] = max_freq_ind

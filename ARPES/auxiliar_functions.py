@@ -6,8 +6,8 @@ import jclsquant as jcl
 from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 
-def plot_pulse(modifier_params, t_vec, t_vec_measures):
-    modifier_id, w = modifier_params[0:2]
+def plot_pulse(modifier_id, modifier_params, t_vec, t_vec_measures):
+    w = modifier_params[0]
     T = 2*np.pi/w
     E = jcl.hbar_fs*w
     pulse_suptitle = f'$\\hbar\\omega={round(E, 2)}$ eV, $\\omega$ = {w:.3f} fs$^{{-1}}$, $T={T:.3f}$ fs'
@@ -17,25 +17,18 @@ def plot_pulse(modifier_params, t_vec, t_vec_measures):
         Pulse_x = np.cos(t_vec*w)
         Pulse_y = np.sin(t_vec*w)
 
-        # Pulse on X
+        # Pulse 
         fig, ax = plt.subplots()
-        ax.plot(t_vec/T, Pulse_x, color='blue')
+        ax.plot(t_vec/T, Pulse_x, color='blue', label='x')
+        ax.plot(t_vec/T, Pulse_y, color='red', label='y')
         ax.set_xlabel('Time (Periods)')
         ax.set_ylabel('Pulse amplitude')
         fig.suptitle(pulse_suptitle)
-        ax.set_title('Pulse shape in x axis')
+        ax.set_title('Pulse shape')
         for i in range(len(t_vec_measures)):
             ax.vlines(t_vec_measures[i]/T, -1, 1, color=cmap(norm(t_vec_measures[i])))
+        ax.legend()
 
-        # Pulse on Y
-        fig, ax = plt.subplots()
-        ax.plot(t_vec/T, Pulse_y, color='blue')
-        ax.set_xlabel('Time (Periods)')
-        ax.set_ylabel('Pulse amplitude')
-        fig.suptitle(pulse_suptitle)
-        ax.set_title('Pulse shape in y axis')
-        for i in range(len(t_vec_measures)):
-            ax.vlines(t_vec_measures[i]/T, -1, 1, color=cmap(norm(t_vec_measures[i])))
 
     elif modifier_id == 'linear':
         Pulse = np.sin(t_vec*w)
@@ -61,8 +54,29 @@ def plot_pulse(modifier_params, t_vec, t_vec_measures):
         ax.set_title('Pulse shape')
         for i in range(len(t_vec_measures)):
             ax.vlines(t_vec_measures[i]/T, -1, 1, color=cmap(norm(t_vec_measures[i])))
+
+    elif modifier_id == 'circle_packed':
+        Tp = modifier_params[3]
+
+        Pulse_x = np.cos(t_vec*w)/np.cosh((t_vec - 2*Tp)/0.5673/Tp)
+        Pulse_y = np.sin(t_vec*w)/np.cosh((t_vec - 2*Tp)/0.5673/Tp)
+
+        # Pulse 
+        fig, ax = plt.subplots()
+        ax.plot(t_vec/T, Pulse_x, color='blue', label='x')
+        ax.plot(t_vec/T, Pulse_y, color='red', label='y')
+        ax.set_xlabel('Time (Periods)')
+        ax.set_ylabel('Pulse amplitude')
+        fig.suptitle(pulse_suptitle)
+        ax.set_title('Pulse shape')
+        for i in range(len(t_vec_measures)):
+            ax.vlines(t_vec_measures[i]/T, -1, 1, color=cmap(norm(t_vec_measures[i])))
+        ax.legend()
     plt.show()
+
+
     return fig, ax
+
 
 def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
               path_type, nk, n_periods, meas_per_T, steps_per_T, type_ham, mass):
@@ -94,9 +108,11 @@ def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
         dosn_mat = np.load(f'{save_path}/dosn/1.npy')
         dosn_f = np.load(f'{save_path}/dosn_f/1.npy')
         for r in range(2, 1+lR):
-            n_f += np.load(f'{save_path}/n_f/{r}.npy')
             dosn_f += np.load(f'{save_path}/dosn_f/{r}.npy')
-        return EF_list, t_vec_meas, dosn_f/lR, n_mat/lR, dosn_mat/lR
+            n_mat += np.load(f'{save_path}/n/{r}.npy')
+            dosn_mat += np.load(f'{save_path}/dosn/{r}.npy')
+
+        return EF_list, t_vec_meas, Ham, dosn_f/lR, n_mat/lR, dosn_mat/lR
     
     except FileNotFoundError:
         cR = 0

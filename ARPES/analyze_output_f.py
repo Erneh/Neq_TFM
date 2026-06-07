@@ -9,12 +9,12 @@ import jclsquant as jcl
 ###### PARAMETERS OF THE  (manual)
 ### PHYSICAL
 # Hamiltonian construction
-mass = 0.50
+mass = 0.0
 t = -2.7
 a_l = 0.24595
 type_ham = 'hbn'
 # kpath n
-path_type = 'full'
+path_type = 'papr'
 nk = 100
 # Type of light               
 modifier_id = 'linear_packed'
@@ -25,7 +25,8 @@ Temp = 1e-9
 # Chemical potential
 mu = 0.00
 # Intensity param     (no units)
-gamma = 0.020
+gamma = 0.010
+
 
 ### SIMULATION
 # Size of hamiltonian (2**N_pot)
@@ -43,7 +44,7 @@ N_random_vector = 2
 # Momenta
 M = int(np.sqrt(N))
 
-str_params = 'linear 18 1.0 1e-09 0.00 0.020 512 5 full 100 1 40 1000 basic 0.50'
+str_params = 'circle 20 1.0 1e-09 0.00 0.025 1024 5 papr 100 4 8 1000 basic 0.50'
 modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, path_type, nk, n_periods, meas_per_T, steps_per_T, type_ham, mass = string_to_parameters(str_params)
 fig_title = f'{modifier_id}, {type_ham}, $N={2**N_pot}$, $\\mu={mu}$ eV, $\\Gamma={gamma}$, $M={M}$'
 
@@ -85,7 +86,7 @@ def H_og(k):
 
 
 # Loading data
-EF_list, t_vec_meas, dosn_f, n_mat, dosn_mat = load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
+EF_list, t_vec_meas, Ham, dosn_f, n_mat, dosn_mat = load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
               path_type, nk, n_periods, meas_per_T, steps_per_T, type_ham, mass)
 
 
@@ -95,43 +96,81 @@ T = 2*np.pi/w
 # Time of  (fs)
 
 t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)
-
-#%% Graphing stuff 
 H_bounds = Ham.bounds
 H_shape = Ham.shape
-dosn_f_mean = np.mean(dosn_f[:meas_per_T], axis=0)/(H_bounds[1]*N**2)
+
 # Seeing light pulse
 if modifier_id == 'circle':
     # Polarization (right or left)
     pol = 'r'
-    modifier_stuff = (modifier_id, w, pol)
+    modifier_params = (w, pol)
 
 elif modifier_id == 'linear':
-    modifier_stuff = (modifier_id, w)
+    modifier_params = (w,)
 
 elif modifier_id == 'linear_packed':
     Tp = T
-    modifier_stuff = (modifier_id, w, Tp)
-plot_pulse(modifier_stuff, t_vec, t_vec_meas)
+    modifier_params = (w, Tp)
+
+elif modifier_id == 'circle_packed':
+    Tp = T
+    pol = 'r'
+    modifier_params = (w, pol, Tp)
+plot_pulse(modifier_id, modifier_params, t_vec, t_vec_meas)
+
+#%% Graphing all the mesurements and pulse
+
+dosn_f_norm = dosn_f/(H_bounds[1]*int(H_shape[0])**2)
+
 
 # Readying reference lines
 autV, autE = np.linalg.eigh(H_og(kpath))
-
-col_min = dosn_f_mean.min()
-col_max = dosn_f_mean.max()/64
-levels = 400
-col_levels = np.linspace(col_min, col_max, levels)
-fig, ax = plt.subplots()
-contour = ax.contourf(kdist, EF_list, dosn_f_mean.T, col_levels, extend='max')
-cbar = plt.colorbar(contour)
-ax.set_xticks(kdist[kind], labels=klabs)
-ax.set_ylabel('Energy')
-fig.suptitle(fig_title)
-#ax.plot(kdist[:,None], autV, c='pink')
+for i in range(len(t_vec_meas)):
+    col_min = 0.0
+    col_max = 1.0
+    levels = 400
+    col_levels = np.linspace(col_min, col_max, levels)
+    fig, ax = plt.subplots()
+    contour = ax.contourf(kdist, EF_list, dosn_f_norm[i].T, col_levels, extend='both')
+    cbar = plt.colorbar(contour)
+    ax.set_xticks(kdist[kind], labels=klabs)
+    ax.set_ylabel('Energy')
+    fig.suptitle(fig_title)
+    ax.set_title(f't={t_vec_meas[i]/T}')
+    ax.set_ylim(-1.5, 1.5)
+    #ax.plot(kdist[:,None], autV, c='pink')
 
 # %% Postprocessing to obtain the actual bands instead of just the weird intensity part
-thresh_dosn_f = 1e6
+dosn_f_norm = dosn_f/(H_bounds[1]*int(H_shape[0])**2)
 
-band_out = dosn_f_mean > thresh_dosn_f
+for i in range(n_periods):
+    col_min = 0.0
+    col_max = 1
+    levels = 400
+    dosn_f_mean = np.mean(dosn_f_norm[i*meas_per_T:(i+1)*meas_per_T], axis=0)
+    col_levels = np.linspace(col_min, col_max, levels)
+    fig, ax = plt.subplots()
+    contour = ax.contourf(kdist, EF_list, dosn_f[i].T/(H_bounds[1]*int(H_shape[0])**2), col_levels, extend='both')
+    cbar = plt.colorbar(contour)
+    ax.set_xticks(kdist[kind], labels=klabs)
+    ax.set_ylabel('Energy')
+    fig.suptitle(fig_title)
+    ax.set_title(f'Period {i}')
+    ax.set_ylim(-1.5, 1.5)
+    plt.show()
+#%% 
 
-# %%
+# %% Check for n
+for i in range(len(t_vec_meas)):
+    plt.plot(EF_list, n_mat[i])
+plt.xlim(-2, 2)
+plt.show()
+
+#%% Graph stuff for presentation
+rLat, Rat, kpath, kind, kdist, klabs = get_path('full', nk)
+autV, autE = np.linalg.eigh(H_og(kpath))
+fig, ax = plt.subplots(dpi=200)
+ax.plot(kdist, autV, color='black')
+ax.set_xticks(kdist[kind], klabs)
+ax.set_title('Real Graphene')
+ax.set_ylabel('Energy (eV)')

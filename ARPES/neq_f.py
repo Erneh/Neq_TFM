@@ -141,6 +141,11 @@ def neq_sim_f(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
         Tp = T
         modifier_params = (A0, w, Tp)
 
+    elif modifier_id == 'circle_packed':
+        Tp = T
+        pol = 'r'
+        modifier_params = (A0, w, pol, Tp)
+
 
     # Selecting the indices accordingly
     ar1 = np.array([1, 0, 1, 0], dtype=bool)
