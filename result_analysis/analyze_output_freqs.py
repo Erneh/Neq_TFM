@@ -217,10 +217,10 @@ lin_predict2 = slope2*test_gaps2 + intercept2
 # Graph of the results
 fig, ax = plt.subplots(dpi=400, figsize=(9, 6))
 ax.plot(gap1_fl, char_freq[:,3]*jcl.hbar_fs, ls='--', marker='.', color='blue', label='$\\Delta_1$ points')
-ax.plot(test_gaps1, lin_predict1, color='cyan', label=f'$y={slope1:.3f}x+{intercept1:.3f}, R^2={R2_1:.3f} $')
+ax.plot(test_gaps1, lin_predict1, color='cyan', label=f'$y={slope1:.3f}x+{intercept1:.3f}, R^2={R2_1:.3f} $', zorder=1)
 
 ax.plot(gap2_fl, char_freq[:,4]*jcl.hbar_fs, ls='--', marker='.', color='darkviolet', label='$\\Delta_2$ points')
-ax.plot(test_gaps2, lin_predict2, color='magenta', label=f'$y={slope2:.3f}x+{intercept2:.3f}, R^2={R2_2:.3f} $')
+ax.plot(test_gaps2, lin_predict2, color='magenta', label=f'$y={slope2:.3f}x+{intercept2:.3f}, R^2={R2_2:.3f} $', zorder=1)
 ax.set_xlabel('Gap size (eV)')
 ax.set_ylabel('$\\hbar \\omega_{char}$ (eV)')
 ax.set_title('Comparison Floquet vs NEQ')

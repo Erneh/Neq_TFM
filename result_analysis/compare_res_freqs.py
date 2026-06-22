@@ -45,7 +45,7 @@ Temp = 1e-9
 # Chemical potential
 mu = 0.01
 # Intensity param     (no units)
-gamma_list = np.linspace(0.000, 0.050, 11)                   
+gamma_list = np.linspace(0.000, 0.025, 6)                   
 
 ## SIMULATION
 # Size of hamiltonian

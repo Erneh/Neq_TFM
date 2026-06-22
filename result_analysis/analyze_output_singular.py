@@ -77,7 +77,7 @@ Temp = 1e-9
 # Chemical potential
 mu = 0.01
 # Intensity param     (no units)
-gamma = 0.045
+gamma = 0.005
 
 ## SIMULATION
 # Size of hamiltonian (2**N_pot)
@@ -181,6 +181,28 @@ ax.set_title('Occupation Number')
 #ax.text(min_e + 0.5*E, 0.2, extra_text, bbox=props)
 
 
+graph_periods = 500
+cmap = plt.cm.plasma 
+norm = Normalize(vmin=0.0, vmax=graph_periods)
+min_e, max_e = -1.5*E, 1.5*E
+hw_lines_step = 0.5*E
+hw_hlines = [i for i in [hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
+hw_hlines += [i for i in [-hw_lines_step*i for i in range(1, int(max_e/hw_lines_step+1))]]
+
+# Text box
+props = dict(boxstyle='round', facecolor='white', alpha=0.8)
+fig, ax = plt.subplots(dpi=300)
+ax.plot(EF_list[-5,:], n_E_list[-5,:], color='blue')
+#ax.legend()
+#cbar = fig.colorbar(ScalarMappable(norm=norm, cmap=cmap), ax=ax, orientation='vertical', label='Time (periods)')
+ax.set_xlabel('Energy (eV)')
+ax.set_ylabel('$n(\\varepsilon)$')
+ax.set_xlim(min_e, max_e)
+ax.vlines(hw_hlines, 0, 1, color='grey', ls='--', alpha=0.5, zorder=1)
+fig.suptitle(fig_title_info)
+ax.set_title('Occupation Number')
+#ax.text(min_e + 0.5*E, 0.2, extra_text, bbox=props)
+
 #%% ----------------------------------------------------------------------------
 # DOS (Energy)
 fig, ax = plt.subplots(dpi=200)
@@ -257,7 +279,8 @@ fig.suptitle(fig_title_info)
 
 # %%
 # Hopefully better plot
-max_freq = min(3*w, freq[-1]*T/(2*np.pi))
+max_w = 1.5
+max_freq = min(max_w*w, freq[-1]*T/(2*np.pi))
 props = dict(boxstyle='round', facecolor='white', edgecolor='grey', alpha=0.8)
 
 fig, ax = plt.subplots()
@@ -271,9 +294,9 @@ ax.scatter(freq[max_freq_ind[3]], fourier_occ[3, max_freq_ind[3]], color='cyan',
 ax.scatter(freq[max_freq_ind[4]], fourier_occ[4, max_freq_ind[4]], color='magenta',
            marker='*', zorder=2)
 ax.set_xlim(-0.05, max_freq)
-ax.vlines(np.arange(w, 3*w, w), 0, np.max(fourier_occ), ls=(0, (1, 1)), color='gray')
-ax.text(w-0.3, 80, '$\\omega=\\omega_p$', bbox=props)
-ax.text(2*w-0.3, 80, '$\\omega=2\\omega_p$', bbox=props)
+ax.vlines(np.arange(w, max_w*w, w), 0, np.max(fourier_occ), ls=(0, (1, 1)), color='gray')
+ax.text(w-0.15, 80, '$\\omega=\\omega_p$', bbox=props)
+#ax.text(2*w-0.3, 80, '$\\omega=2\\omega_p$', bbox=props)
 #wc_text = f'$\\omega_c = {char_freq[2]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq[3]:.6f}$ fs$^{{-1}}$\n$\\omega_c = {char_freq[4]:.6f}$ fs$^{{-1}}$'
 #ax.text(0.72, 0.98, wc_text, transform=ax.transAxes, verticalalignment='top', bbox=props)
 #ax.legend(loc=(0.47, 0.7815), labelspacing=0.8, edgecolor='grey')

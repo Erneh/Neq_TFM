@@ -90,18 +90,37 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
     # Broadening in the energies
     broad = dE*np.pi/M
 
+    # Names of file and info on 
+    fig_title_info = f'$N={{{2**N_pot}}}$, E={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}, R={N_random_vector}'
+    pulse_suptitle = fr'$E={E}, \omega = {w:.3f}$ fs$^{{-1}}, T={T:.3f}$ fs'
+    extra_text = f'Light: {modifier_id}\n$\\delta E={broad:.3f}$\n# Rand Vecs: {N_random_vector}\nMeasures/T={meas_per_T}\nSteps/T={steps_per_T}'
+
+    already_calc = check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
+                            n_periods, meas_per_T, steps_per_T, type_ham)
+
     # Different possibilities depending on type of light
     if modifier_id == 'circle':
         # Polarization (right or left)
         pol = 'r'
         modifier_params = (A0, w, pol)
 
+    elif modifier_id == 'circln':
+        # Polarization (right or left)
+        pol = 'r'
+        modifier_params = (A0/2**0.5, w, pol)
+        modifier_id = 'circle'
+        
     elif modifier_id == 'linear':
         modifier_params = (A0, w)
 
     elif modifier_id == 'linear_packed':
         Tp = T
         modifier_params = (A0, w, Tp)
+
+    elif modifier_id == 'circle_packed':
+        Tp = T
+        pol = 'r'
+        modifier_params = (A0, w, pol, Tp)
 
     obs_list = [['n', N_measures, M]]
 
@@ -119,13 +138,6 @@ def neq_sim(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
     # Times where the measurements take place
     t_vec_measures = np.linspace(0, n_periods*T, N_measures)
     
-    # Names of file and info on 
-    fig_title_info = f'$N={{{2**N_pot}}}$, E={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}, R={N_random_vector}'
-    pulse_suptitle = fr'$E={E}, \omega = {w:.3f}$ fs$^{{-1}}, T={T:.3f}$ fs'
-    extra_text = f'Light: {modifier_id}\n$\\delta E={broad:.3f}$\n# Rand Vecs: {N_random_vector}\nMeasures/T={meas_per_T}\nSteps/T={steps_per_T}'
-
-    already_calc = check_if_calculated(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
-                            n_periods, meas_per_T, steps_per_T, type_ham)
     perform_calc = force_recalc or (not already_calc)
 
     if perform_calc:

@@ -44,7 +44,7 @@ N_random_vector = 2
 # Momenta
 M = int(np.sqrt(N))
 
-str_params = 'circle 20 1.0 1e-09 0.00 0.025 1024 5 papr 100 4 8 1000 basic 0.50'
+str_params = 'linear 18 1.0 1e-09 0.00 0.025 512 10 vals 200 4 16 1000 basic 0.50'
 modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, path_type, nk, n_periods, meas_per_T, steps_per_T, type_ham, mass = string_to_parameters(str_params)
 fig_title = f'{modifier_id}, {type_ham}, $N={2**N_pot}$, $\\mu={mu}$ eV, $\\Gamma={gamma}$, $M={M}$'
 
@@ -89,7 +89,8 @@ def H_og(k):
 EF_list, t_vec_meas, Ham, dosn_f, n_mat, dosn_mat = load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector, 
               path_type, nk, n_periods, meas_per_T, steps_per_T, type_ham, mass)
 
-
+if np.min(dosn_f)/np.max(dosn_f) < -0.1:
+    print('Beware! There is a high negative part somewhere in dosn!')
 # Preparing data to be graphed
 w = E/jcl.hbar_fs 
 T = 2*np.pi/w
@@ -136,11 +137,13 @@ for i in range(len(t_vec_meas)):
     ax.set_xticks(kdist[kind], labels=klabs)
     ax.set_ylabel('Energy')
     fig.suptitle(fig_title)
-    ax.set_title(f't={t_vec_meas[i]/T}')
+    ax.set_title(f't={(t_vec_meas[i]/T):.3f}')
     ax.set_ylim(-1.5, 1.5)
+    fig.savefig(f'ARPES/Temp/{i}.png')
+    plt.show()
     #ax.plot(kdist[:,None], autV, c='pink')
 
-# %% Postprocessing to obtain the actual bands instead of just the weird intensity part
+# %% Doing the mean in a certain period
 dosn_f_norm = dosn_f/(H_bounds[1]*int(H_shape[0])**2)
 
 for i in range(n_periods):
@@ -150,7 +153,7 @@ for i in range(n_periods):
     dosn_f_mean = np.mean(dosn_f_norm[i*meas_per_T:(i+1)*meas_per_T], axis=0)
     col_levels = np.linspace(col_min, col_max, levels)
     fig, ax = plt.subplots()
-    contour = ax.contourf(kdist, EF_list, dosn_f[i].T/(H_bounds[1]*int(H_shape[0])**2), col_levels, extend='both')
+    contour = ax.contourf(kdist, EF_list, dosn_f_mean.T, col_levels, extend='both')
     cbar = plt.colorbar(contour)
     ax.set_xticks(kdist[kind], labels=klabs)
     ax.set_ylabel('Energy')
@@ -158,8 +161,23 @@ for i in range(n_periods):
     ax.set_title(f'Period {i}')
     ax.set_ylim(-1.5, 1.5)
     plt.show()
-#%% 
+#%% Full Mean in all the periods
+dosn_f_norm = dosn_f/(H_bounds[1]*int(H_shape[0])**2)
 
+col_min = 0.0
+col_max = 1
+levels = 400
+dosn_f_mean = np.mean(dosn_f_norm, axis=0)
+col_levels = np.linspace(col_min, col_max, levels)
+fig, ax = plt.subplots()
+contour = ax.contourf(kdist, EF_list, dosn_f[i].T/(H_bounds[1]*int(H_shape[0])**2), col_levels, extend='both')
+cbar = plt.colorbar(contour)
+ax.set_xticks(kdist[kind], labels=klabs)
+ax.set_ylabel('Energy')
+fig.suptitle(fig_title)
+ax.set_title(f'Full Mean')
+ax.set_ylim(-1.5, 1.5)
+plt.show()
 # %% Check for n
 for i in range(len(t_vec_meas)):
     plt.plot(EF_list, n_mat[i])

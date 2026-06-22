@@ -8,11 +8,11 @@ import subprocess
 from core import check_if_calculated
 
 # Name of the file
-file_name = 'lin_def_calcs'
+file_name = 'circln_def_calcs'
 
 
 # Type of Light
-modifier_id_list = ['linear']
+modifier_id_list = ['circln']
 ham_type_list = ['basic']
 ham_param_list = [0.50]
 # Power to which the number of atoms is 'powered'

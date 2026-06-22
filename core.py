@@ -319,7 +319,7 @@ def frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T, range_sear
     w = (2*np.pi/T)
     max_las_freq = round(freq[-1] / w)
     std = 2*df
-    gaussians = (std*np.sqrt(2*np.pi))*np.exp(-0.5*(freq[None,:]-w*np.arange(0, max_las_freq+0.1, 1)[:,None])**2/std**2)
+    gaussians = (std*np.sqrt(2*np.pi))*np.exp(-0.5*(freq[None,:]-w*np.arange(1, max_las_freq+0.1, 1)[:,None])**2/std**2)
     f_gaussian = 1 - np.sum(gaussians, axis=0) / np.sum(gaussians, axis=0).max()
     f_gaussian[f_gaussian < 0.6] = 0.0
     # Checking only the frequencies between 0 and 1 (in laser period units)
