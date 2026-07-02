@@ -31,7 +31,7 @@ from datetime import timedelta
 #### PARAMETERS OF THE MODEL
 ## PHYSICAL
 # Type of light               
-modifier_id = 'circle'
+modifier_id = 'circln'
 # Hamiltonian type
 type_ham = 'basic'
 # Parameters of the ham (only read if hbn)
@@ -47,7 +47,7 @@ gamma_list = np.linspace(0.000, 0.025, 6)
 
 ## SIMULATION
 # Size of hamiltonian
-N_pot = 19
+N_pot = 20
 N = 2**N_pot
 # Amount of periods to be simulated
 n_periods = 500
@@ -65,40 +65,41 @@ M = int(np.sqrt(N))
 ## RESULT ANALYSIS
 # Range of searching the maximim frequency (in period^-1 units)
 range_search = 1
-
-## CALCULATED PARAMS
-# Parameters of the laser
-w = E/jcl.hbar_fs 
-T = 2*np.pi/w    
-t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)   
-# Amount of half multiples of E where the occupation is obtained
 hE_reps = 2
-# Broadening in the energies
-t_vec_measures = np.linspace(0, n_periods*T, N_measures)
+## CALCULATED PARAMS
 
 
-# Print of parameters to check results
-print('PARAMETERS OF ANALYSIS')
-print()
-print(f'Type of light is {modifier_id}')
-print(f'# of atoms: {N}')
-print(f'Energy: {E} eV')
-print(f'Temperature: {Temp} K')
-print(f'Chem potential: {mu} eV')
-print(f'# of periods: {n_periods}')
-print(f'steps/period: {steps_per_T}')
-print(f'# measures/T: {meas_per_T}')
 
+char_freq = np.zeros((len(gamma_list), 2*hE_reps + 1))
 
-hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
-color_list = ['olivedrab', 'red', 'orange', 'blue', 'darkviolet']
-t_vec_measures = np.linspace(0, n_periods*T, N_measures)
+timeframe_intensity_list = [(0.000, 100, 4, 1.0),
+                            (0.005, 500, 4, 1.0),
+                            (0.010, 200, 8, 1.0),
+                            (0.015, 150, 8, 1.0),
+                            (0.020, 100, 16, 1.0),
+                            (0.025, 100, 16, 1.0),
+                            (0.030, 80, 24, 1.0),
+                            (0.035, 80, 24, 1.0),
+                            (0.040, 50, 32, 1.0),
+                            (0.045, 50, 32, 1.0),
+                            (0.050, 50, 32, 1.0)]
 
-
-char_freq = np.zeros((len(gamma_list), len(hE_list)))
 for (g, gamma) in enumerate(gamma_list):
     if M == 0:
         M = int(np.sqrt(N))
+    n_periods, meas_per_T, E = timeframe_intensity_list[g][1:]
+
+    # Parameters of the laser
+    w = E/jcl.hbar_fs 
+    T = 2*np.pi/w    
+    t_vec = np.linspace(0,n_periods*T , steps_per_T*n_periods)   
+    # Amount of half multiples of E where the occupation is obtained
+    
+    # Broadening in the energies
+    N_measures = meas_per_T*n_periods
+    t_vec_measures = np.linspace(0, n_periods*T, N_measures)
+    hE_list = [hE*E/2 for hE in range(-hE_reps, hE_reps+1)]
+    color_list = ['olivedrab', 'red', 'orange', 'blue', 'darkviolet']
     # Names of file and info on graphs
     folder_name = f'{modifier_id}/G={gamma:.3f}_E={float(E)}_Temp={Temp}_mu={mu:.2f}/N={N_pot}_M={M}_R={N_random_vector}_nT={n_periods}_measT={meas_per_T}_stT={steps_per_T}'
     fig_title_info = f'$N={{{2**N_pot}}}$, E={E} eV, T={Temp} K, $\\mu$={mu} eV, $\\Gamma$={gamma}, M={M}'
@@ -108,7 +109,7 @@ for (g, gamma) in enumerate(gamma_list):
                         M, N_random_vector, n_periods, meas_per_T, steps_per_T, type_ham, ham_params, R=None)
 
     # Getting the characteristic period of each system
-    occ_drop_list, fourier_occ, freq, char_freq[g], max_freq_ind = frequency_analysis(EF_list, dosn_list, hE_list, t_vec_measures, T, range_search)
+    occ_drop_list, fourier_occ, freq, char_freq[g], max_freq_ind = frequency_analysis(EF_list, dosn_list, hE_list, t_vec_measures, T)
     # --------------------------------------------------------------------------
     # OCCUPATION(time) GRAPH
     # General figure to contain all important data

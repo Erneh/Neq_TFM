@@ -296,7 +296,7 @@ def extract_occ_time(t_vec_measures, EF_list, n_E_list, hE_list):
     return occ_drop_list, N_measures
 
 
-def frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T, range_search=1):
+def frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T):
     """
     Returns ANGULAR frequency and chararcteristic freq of a given occupation
     """
@@ -323,14 +323,16 @@ def frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T, range_sear
     f_gaussian = 1 - np.sum(gaussians, axis=0) / np.sum(gaussians, axis=0).max()
     f_gaussian[f_gaussian < 0.6] = 0.0
     # Checking only the frequencies between 0 and 1 (in laser period units)
-
+    max_occ = occ_drop_list.max()
     for (i, hE) in enumerate(hE_list):
         #max_freq_ind[i] = (np.where(fourier_occ[i, inf_freqs] == max(fourier_occ[i][inf_freqs])))[0][0]
         max_freq_ind[i] = (fourier_occ[i]*f_gaussian).argmax()
-        # Rule out noisy situation where no real mode is detected
-        if fourier_occ[i][max_freq_ind[i]] < 1e-10:
-            max_freq_ind[i] = 0
         char_freq[i] = freq[max_freq_ind[i]]
+        # Rule out noisy situation where no real mode is detected
+        if max(np.abs(fourier_occ[i][max_freq_ind[i]] - fourier_occ[i])) < 1:
+            max_freq_ind[i] = 0
+            char_freq[i] = .0
+        
     return occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind
 
 
