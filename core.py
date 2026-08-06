@@ -236,25 +236,25 @@ def load_data(modifier_id, N_pot, E, Temp, mu, gamma, M, N_random_vector,
     # Loading the info in the .npy files available at the moment
     if N_random_vector == 1:
         print(f'1/1 calculations finished! Loading results...')
-        EF_list = np.load(f'{out_file_loc}Out/{folder_name}/E.npy')
-        n_E_list = np.load(f'{out_file_loc}Out/{folder_name}/n_E.npy')
-        dos_list = np.load(f'{out_file_loc}Out/{folder_name}/dos_E.npy')
-        dosn_list = np.load(f'{out_file_loc}Out/{folder_name}/dosn_E.npy')
+        EF_list = np.load(f'{out_file_loc}/Out/{folder_name}/E.npy')
+        n_E_list = np.load(f'{out_file_loc}/Out/{folder_name}/n_E.npy')
+        dos_list = np.load(f'{out_file_loc}/Out/{folder_name}/dos_E.npy')
+        dosn_list = np.load(f'{out_file_loc}/Out/{folder_name}/dosn_E.npy')
     else:
         # Deciding the amount of random vectors being used in the sim
-        R_total = len(os.listdir(f'Out/{folder_name}/Ene_R'))
+        R_total = len(os.listdir(f'{out_file_loc}/Out/{folder_name}/Ene_R'))
         if R is None:
             R = R_total
 
         print(f'{R_total}/{N_random_vector} calculations finished! Loading {R} results...')
-        EF_list = np.load(f'Out/{folder_name}/Ene_R/1.npy')
+        EF_list = np.load(f'{out_file_loc}/Out/{folder_name}/Ene_R/1.npy')
         n_E_list = np.zeros_like(EF_list)
         dos_list = np.zeros_like(EF_list)
         dosn_list = np.zeros_like(EF_list)
         for i in range(1, R+1):
-            n_E_list += np.load(f'Out/{folder_name}/noc_R/{i}.npy')
-            dos_list += np.load(f'Out/{folder_name}/dos_R/{i}.npy')
-            dosn_list += np.load(f'Out/{folder_name}/dosn_R/{i}.npy')
+            n_E_list += np.load(f'{out_file_loc}/Out/{folder_name}/noc_R/{i}.npy')
+            dos_list += np.load(f'{out_file_loc}/Out/{folder_name}/dos_R/{i}.npy')
+            dosn_list += np.load(f'{out_file_loc}/Out/{folder_name}/dosn_R/{i}.npy')
         n_E_list /= R
         dos_list /= R
         dosn_list /= R
@@ -336,16 +336,16 @@ def frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T):
     return occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind
 
 
-def frequency_analysis_dict(res, range_search=1, use_dosn=False, hE_reps=2):
+def frequency_analysis_dict(res, use_dosn=False, hE_reps=2):
     hw = res['hw']
     w = hw/hbar
     T = 2*np.pi/w
     t_vec_measures = np.linspace(0, res['n_periods']*T, res['n_periods']*res['meas_per_T'])
     hE_list = [hE*hw/2 for hE in range(-hE_reps, hE_reps+1)]
     if use_dosn:
-        occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(res['EF_list'], res['dosn_list'], hE_list, t_vec_measures, T, range_search)
+        occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(res['EF_list'], res['dosn_list'], hE_list, t_vec_measures, T)
     else:
-        occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(res['EF_list'], res['n_E_list'], hE_list, t_vec_measures, T, range_search)
+        occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(res['EF_list'], res['n_E_list'], hE_list, t_vec_measures, T)
     res['occ_drop_list'] = occ_drop_list
     res['fourier_occ'] = fourier_occ
     res['freq'] = freq
