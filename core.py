@@ -336,12 +336,13 @@ def frequency_analysis(EF_list, n_E_list, hE_list, t_vec_measures, T):
     return occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind
 
 
-def frequency_analysis_dict(res, use_dosn=False, hE_reps=2):
+def frequency_analysis_dict(res, hE_list = None, use_dosn=False, hE_reps=2):
     hw = res['hw']
     w = hw/hbar
     T = 2*np.pi/w
     t_vec_measures = np.linspace(0, res['n_periods']*T, res['n_periods']*res['meas_per_T'])
-    hE_list = [hE*hw/2 for hE in range(-hE_reps, hE_reps+1)]
+    if hE_list is None:
+        hE_list = [hE*hw/2 for hE in range(-hE_reps, hE_reps+1)]
     if use_dosn:
         occ_drop_list, fourier_occ, freq, char_freq, max_freq_ind = frequency_analysis(res['EF_list'], res['dosn_list'], hE_list, t_vec_measures, T)
     else:
